@@ -74,8 +74,8 @@ func (m *Base[M, T]) RWithE(clb func(v T) error) error {
 
 // RWith same as RWithE but do not return an error
 func (m *Base[M, T]) RWith(clb func(v T)) {
-	_ = m.WithE(func(tx *T) error {
-		clb(*tx)
+	_ = m.RWithE(func(tx T) error {
+		clb(tx)
 		return nil
 	})
 }
