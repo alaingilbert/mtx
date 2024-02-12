@@ -154,19 +154,25 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 
 //----------------------
 
-func NewMap[K cmp.Ordered, V any]() Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(make(map[K]V)))}
+func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+	if v == nil {
+		v = make(map[K]V)
+	}
+	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(v))}
 }
 
-func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]()) }
+func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap[K, V](v)) }
 
 //----------------------
 
-func NewRWMap[K cmp.Ordered, V any]() Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(make(map[K]V)))}
+func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+	if v == nil {
+		v = make(map[K]V)
+	}
+	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(v))}
 }
 
-func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V]()) }
+func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap[K, V](v)) }
 
 //----------------------
 
@@ -269,19 +275,25 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
-func NewSlice[V any]() Slice[V] {
-	return Slice[V]{newBaseSlicePtr[V](NewMtxPtr(make([]V, 0)))}
+func NewSlice[V any](v []V) Slice[V] {
+	if v == nil {
+		v = make([]V, 0)
+	}
+	return Slice[V]{newBaseSlicePtr[V](NewMtxPtr(v))}
 }
 
-func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
+func NewSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewSlice[V](v)) }
 
 //----------------------
 
-func NewRWSlice[V any]() Slice[V] {
-	return Slice[V]{newBaseSlicePtr[V](NewRWMtxPtr(make([]V, 0)))}
+func NewRWSlice[V any](v []V) Slice[V] {
+	if v == nil {
+		v = make([]V, 0)
+	}
+	return Slice[V]{newBaseSlicePtr[V](NewRWMtxPtr(v))}
 }
 
-func NewRWSlicePtr[V any]() *Slice[V] { return toPtr(NewRWSlice[V]()) }
+func NewRWSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewRWSlice[V](v)) }
 
 //----------------------
 
