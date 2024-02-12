@@ -27,6 +27,7 @@ func TestMtx_Val(t *testing.T) {
 	m := NewMtx(orig)
 	val := m.Val()
 	**val = "new"
+	assert.Equal(t, "new", someString)
 	assert.Equal(t, "new", **val)
 	assert.Equal(t, "new", *orig)
 }
