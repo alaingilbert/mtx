@@ -282,7 +282,7 @@ func NewSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewMtxPtr(v))}
 }
 
-func NewSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewSlice[V](v)) }
+func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
 
 //----------------------
 
@@ -293,7 +293,7 @@ func NewRWSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewRWMtxPtr(v))}
 }
 
-func NewRWSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewRWSlice[V](v)) }
+func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice[T](v)) }
 
 //----------------------
 
