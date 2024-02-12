@@ -1,15 +1,34 @@
 package mtx
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"slices"
 	"testing"
 )
+
+func TestMtx_Set(t *testing.T) {
+	m := NewMtx("old")
+	assert.Equal(t, "old", m.Get())
+	m.Set("new")
+	assert.Equal(t, "new", m.Get())
+}
 
 func TestMtx_Replace(t *testing.T) {
 	m := NewMtx("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Get())
+}
+
+func TestMtx_Val(t *testing.T) {
+	someString := "old"
+	orig := &someString
+	m := NewMtx(orig)
+	val := m.Val()
+	**val = "new"
+	assert.Equal(t, "new", **val)
+	assert.Equal(t, "new", *orig)
 }
 
 func TestMtxPtr_Replace(t *testing.T) {
@@ -31,6 +50,26 @@ func TestRWMtxPtr_Replace(t *testing.T) {
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Get())
+}
+
+func TestRWMtx_Val(t *testing.T) {
+	someString := "old"
+	orig := &someString
+	m := NewRWMtx(orig)
+	val := m.Val()
+	**val = "new"
+	assert.Equal(t, "new", **val)
+	assert.Equal(t, "new", *orig)
+}
+
+func TestRWMtxMap_GetKey(t *testing.T) {
+	m := NewMap[string, int]()
+	_, ok := m.GetKey("a")
+	assert.False(t, ok)
+	m.SetKey("a", 1)
+	el, ok := m.GetKey("a")
+	assert.True(t, ok)
+	assert.Equal(t, 1, el)
 }
 
 func TestRWMtxMap_HasKey(t *testing.T) {
@@ -66,4 +105,87 @@ func TestRWMtxMap_DeleteKey(t *testing.T) {
 	assert.Equal(t, 1, m.Len())
 	m.DeleteKey("a")
 	assert.Equal(t, 0, m.Len())
+}
+
+func TestRWMtxMap_Values(t *testing.T) {
+	m := NewMap[string, int]()
+	assert.Equal(t, []int{}, m.Values())
+	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	values := m.Values()
+	slices.Sort(values)
+	assert.Equal(t, []int{1, 2, 3}, values)
+}
+
+func TestRWMtxMap_Keys(t *testing.T) {
+	m := NewMapPtr[string, int]()
+	assert.Equal(t, []string{}, m.Keys())
+	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	keys := m.Keys()
+	slices.Sort(keys)
+	assert.Equal(t, []string{"a", "b", "c"}, keys)
+}
+
+func TestRWMtxMap_Each(t *testing.T) {
+	m := NewMap[string, int]()
+	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	arr := make([]string, 0)
+	m.Each(func(k string, v int) {
+		arr = append(arr, fmt.Sprintf("%s_%d", k, v))
+	})
+	slices.Sort(arr)
+	assert.Equal(t, []string{"a_1", "b_2", "c_3"}, arr)
+}
+
+func TestRWMtxMap_Clone(t *testing.T) {
+	m := NewMap[string, int]()
+	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	clonedMap := m.Clone()
+	assert.Equal(t, 1, clonedMap["a"])
+}
+
+func TestRWMtxSlice(t *testing.T) {
+	m := NewSlice[int]()
+	assert.Equal(t, 0, m.Len())
+	m.Append(1, 2, 3)
+	assert.Equal(t, 3, m.Len())
+	assert.Equal(t, []int{1, 2, 3}, m.Get())
+	val2 := m.Shift()
+	assert.Equal(t, 1, val2)
+	m.Unshift(4)
+	assert.Equal(t, []int{4, 2, 3}, m.Get())
+	val2 = m.Pop()
+	assert.Equal(t, []int{4, 2}, m.Get())
+	m.DeleteIdx(1)
+	assert.Equal(t, []int{4}, m.Get())
+	m.Append(5, 6, 7)
+	assert.Equal(t, []int{4, 5, 6, 7}, m.Get())
+	assert.Equal(t, 6, m.GetIdx(2))
+	m.Insert(2, 8)
+	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Get())
+}
+
+func TestRWMtxSlice_Clone(t *testing.T) {
+	m := NewSlice[int]()
+	m.Set([]int{1, 2, 3})
+	clonedSlice := m.Clone()
+	assert.Equal(t, []int{1, 2, 3}, clonedSlice)
+}
+
+func TestRWMtxSlice_Each(t *testing.T) {
+	m := NewSlicePtr[int]()
+	m.Append(1, 2, 3)
+	arr := make([]string, 0)
+	m.Each(func(el int) {
+		arr = append(arr, fmt.Sprintf("E%d", el))
+	})
+	assert.Equal(t, []string{"E1", "E2", "E3"}, arr)
+}
+
+func TestRWMtxUInt64(t *testing.T) {
+	var m RWMtxUInt64[uint64]
+	assert.Equal(t, uint64(0), m.Get())
+	m.Incr(10)
+	assert.Equal(t, uint64(10), m.Get())
+	m.Decr(5)
+	assert.Equal(t, uint64(5), m.Get())
 }
