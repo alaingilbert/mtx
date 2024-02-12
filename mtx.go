@@ -250,6 +250,30 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
+type Slice[V any] struct {
+	*BaseSlice[Locker[[]V], V]
+}
+
+func NewSlice[V any]() Slice[V] {
+	return Slice[V]{NewBaseSlicePtr[Locker[[]V], V](NewMtxPtr(make([]V, 0)))}
+}
+
+func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
+
+//----------------------
+
+type RWSlice[V any] struct {
+	*BaseSlice[Locker[[]V], V]
+}
+
+func NewRWSlice[V any]() RWSlice[V] {
+	return RWSlice[V]{NewBaseSlicePtr[Locker[[]V], V](NewRWMtxPtr(make([]V, 0)))}
+}
+
+func NewRWSlicePtr[V any]() *RWSlice[V] { return toPtr(NewRWSlice[V]()) }
+
+//----------------------
+
 type BaseSlice[M Locker[[]V], V any] struct {
 	Locker[[]V]
 }
@@ -316,32 +340,6 @@ func (s *BaseSlice[M, T]) Insert(i int, el T) {
 		(*v)[i] = el
 	})
 }
-
-//----------------------
-
-type Slice[V any] struct {
-	*BaseSlice[Locker[[]V], V]
-}
-
-func NewSlice[V any]() Slice[V] {
-	m := NewMtxPtr(make([]V, 0))
-	return Slice[V]{NewBaseSlicePtr[Locker[[]V], V](m)}
-}
-
-func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
-
-//----------------------
-
-type RWSlice[V any] struct {
-	*BaseSlice[Locker[[]V], V]
-}
-
-func NewRWSlice[V any]() RWSlice[V] {
-	m := NewRWMtxPtr(make([]V, 0))
-	return RWSlice[V]{NewBaseSlicePtr[Locker[[]V], V](m)}
-}
-
-func NewRWSlicePtr[V any]() *RWSlice[V] { return toPtr(NewRWSlice[V]()) }
 
 //----------------------
 
