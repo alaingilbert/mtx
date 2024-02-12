@@ -275,22 +275,22 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
-func NewSlice[V any](v []V) Slice[V] {
+func NewSlice[T any](v []T) Slice[T] {
 	if v == nil {
-		v = make([]V, 0)
+		v = make([]T, 0)
 	}
-	return Slice[V]{newBaseSlicePtr[V](NewMtxPtr(v))}
+	return Slice[T]{newBaseSlicePtr[T](NewMtxPtr(v))}
 }
 
 func NewSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewSlice[V](v)) }
 
 //----------------------
 
-func NewRWSlice[V any](v []V) Slice[V] {
+func NewRWSlice[T any](v []T) Slice[T] {
 	if v == nil {
-		v = make([]V, 0)
+		v = make([]T, 0)
 	}
-	return Slice[V]{newBaseSlicePtr[V](NewRWMtxPtr(v))}
+	return Slice[T]{newBaseSlicePtr[T](NewRWMtxPtr(v))}
 }
 
 func NewRWSlicePtr[V any](v []V) *Slice[V] { return toPtr(NewRWSlice[V](v)) }
