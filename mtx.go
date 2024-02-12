@@ -22,7 +22,7 @@ type Locker[T any] interface {
 }
 
 // Compile time checks to ensure type satisfies Locker interface
-var _ Locker[int] = (*base[sync.Locker, int])(nil)
+var _ Locker[any] = (*base[sync.Locker, any])(nil)
 
 type base[M sync.Locker, T any] struct {
 	m M
