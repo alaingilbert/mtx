@@ -152,6 +152,24 @@ func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
 
 //----------------------
 
+func NewMap[K cmp.Ordered, V any]() Map[K, V] {
+	m := NewMtxPtr(make(map[K]V))
+	return Map[K, V]{newBaseMapPtr[K, V](m)}
+}
+
+func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]()) }
+
+//----------------------
+
+func NewRWMap[K cmp.Ordered, V any]() Map[K, V] {
+	m := NewRWMtxPtr(make(map[K]V))
+	return Map[K, V]{newBaseMapPtr[K, V](m)}
+}
+
+func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V]()) }
+
+//----------------------
+
 func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] {
 	return &Map[K, V]{m}
 }
@@ -231,24 +249,6 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 	})
 	return
 }
-
-//----------------------
-
-func NewMap[K cmp.Ordered, V any]() Map[K, V] {
-	m := NewMtxPtr(make(map[K]V))
-	return Map[K, V]{newBaseMapPtr[K, V](m)}
-}
-
-func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]()) }
-
-//----------------------
-
-func NewRWMap[K cmp.Ordered, V any]() Map[K, V] {
-	m := NewRWMtxPtr(make(map[K]V))
-	return Map[K, V]{newBaseMapPtr[K, V](m)}
-}
-
-func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V]()) }
 
 //----------------------
 
