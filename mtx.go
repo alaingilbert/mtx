@@ -25,7 +25,7 @@ type Base[M sync.Locker, T any] struct {
 	v T
 }
 
-func NewBase[M sync.Locker, T any](m M, v T) *Base[M, T] {
+func newBase[M sync.Locker, T any](m M, v T) *Base[M, T] {
 	return &Base[M, T]{m: m, v: v}
 }
 
@@ -103,7 +103,7 @@ type Mtx[T any] struct {
 
 // NewMtx creates a new Mtx
 func NewMtx[T any](v T) Mtx[T] {
-	return Mtx[T]{NewBase[*sync.Mutex, T](&sync.Mutex{}, v)}
+	return Mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
 }
 
 // NewMtxPtr creates a new pointer to *Mtx
@@ -118,7 +118,7 @@ type RWMtx[T any] struct {
 
 // NewRWMtx creates a new RWMtx
 func NewRWMtx[T any](v T) RWMtx[T] {
-	return RWMtx[T]{NewBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
+	return RWMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
 }
 
 // NewRWMtxPtr creates a new pointer to *RWMtx
