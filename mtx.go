@@ -12,13 +12,13 @@ func toPtr[T any](v T) *T { return &v }
 type Locker[T any] interface {
 	sync.Locker
 	Get() T
-	Set(v T)
-	Val() *T
-	Replace(newVal T) (old T)
-	With(clb func(v *T))
-	WithE(clb func(v *T) error) error
 	RWith(clb func(v T))
 	RWithE(clb func(v T) error) error
+	Replace(newVal T) (old T)
+	Set(v T)
+	Val() *T
+	With(clb func(v *T))
+	WithE(clb func(v *T) error) error
 }
 
 // Compile time checks to ensure type satisfies Locker interface
