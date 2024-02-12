@@ -27,7 +27,10 @@ func NewBase[M sync.Locker, T any](m M, v T) *Base[M, T] {
 	return &Base[M, T]{m: m, v: v}
 }
 
-func (m *Base[M, T]) Lock()   { m.m.Lock() }
+// Lock exposes the underlying sync.Mutex Lock function
+func (m *Base[M, T]) Lock() { m.m.Lock() }
+
+// Unlock exposes the underlying sync.Mutex Unlock function
 func (m *Base[M, T]) Unlock() { m.m.Unlock() }
 
 // Val gets the wrapped value by the mutex.
@@ -134,7 +137,10 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 	})
 }
 
-func (m *RWMtx[T]) RLock()   { m.m.RLock() }
+// RLock exposes the underlying sync.RWMutex RLock function
+func (m *RWMtx[T]) RLock() { m.m.RLock() }
+
+// RUnlock exposes the underlying sync.RWMutex RUnlock function
 func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
 
 //----------------------
