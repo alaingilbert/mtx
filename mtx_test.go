@@ -12,8 +12,22 @@ func TestMtx_Replace(t *testing.T) {
 	assert.Equal(t, "new", m.Get())
 }
 
+func TestMtxPtr_Replace(t *testing.T) {
+	m := NewMtxPtr("old")
+	old := m.Replace("new")
+	assert.Equal(t, "old", old)
+	assert.Equal(t, "new", m.Get())
+}
+
 func TestRWMtx_Replace(t *testing.T) {
 	m := NewRWMtx("old")
+	old := m.Replace("new")
+	assert.Equal(t, "old", old)
+	assert.Equal(t, "new", m.Get())
+}
+
+func TestRWMtxPtr_Replace(t *testing.T) {
+	m := NewRWMtxPtr("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Get())
