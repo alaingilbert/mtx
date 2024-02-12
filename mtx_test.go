@@ -7,6 +7,16 @@ import (
 	"testing"
 )
 
+func TestMtx_Debug(t *testing.T) {
+	debug = true
+	defer func() { debug = false }()
+	m := NewMap[string, int]()
+	m.Len()
+	m2 := NewRWMap[string, int]()
+	m2.Len()
+	assert.Equal(t, 1, 1)
+}
+
 func TestMtx_LockUnlock(t *testing.T) {
 	m := NewMtx("old")
 	m.Lock()

@@ -2,8 +2,12 @@ package mtx
 
 import (
 	"cmp"
+	"os"
+	"strconv"
 	"sync"
 )
+
+var debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 
 func toPtr[T any](v T) *T { return &v }
 
@@ -56,6 +60,9 @@ func (m *Base[M, T]) With(clb func(v *T)) {
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *Base[M, T]) RWithE(clb func(v T) error) error {
+	if debug {
+		println("Base RWithE")
+	}
 	return m.WithE(func(v *T) error {
 		return clb(*v)
 	})
@@ -121,6 +128,9 @@ func NewRWMtxPtr[T any](v T) *RWMtx[T] { return toPtr(NewRWMtx(v)) }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
+	if debug {
+		println("RWMtx RWithE")
+	}
 	m.m.RLock()
 	defer m.m.RUnlock()
 	return clb(m.v)
