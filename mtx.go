@@ -18,12 +18,6 @@ type Locker[T any] interface {
 	RWithE(clb func(v T) error) error
 }
 
-type RLocker[T any] interface {
-	Locker[T]
-	RLock()
-	RUnlock()
-}
-
 type Base[M sync.Locker, T any] struct {
 	m M
 	v T
@@ -241,12 +235,12 @@ func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]())
 //----------------------
 
 type RWMap[K cmp.Ordered, V any] struct {
-	*BaseMap[RLocker[map[K]V], K, V]
+	*BaseMap[Locker[map[K]V], K, V]
 }
 
 func NewRWMap[K cmp.Ordered, V any]() RWMap[K, V] {
 	m := NewRWMtxPtr(make(map[K]V))
-	return RWMap[K, V]{NewBaseMapPtr[RLocker[map[K]V], K, V](m)}
+	return RWMap[K, V]{NewBaseMapPtr[Locker[map[K]V], K, V](m)}
 }
 
 func NewRWMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] { return toPtr(NewRWMap[K, V]()) }
@@ -336,12 +330,12 @@ func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
 //----------------------
 
 type RWSlice[V any] struct {
-	*BaseSlice[RLocker[[]V], V]
+	*BaseSlice[Locker[[]V], V]
 }
 
 func NewRWSlice[V any]() RWSlice[V] {
 	m := NewRWMtxPtr(make([]V, 0))
-	return RWSlice[V]{NewBaseSlicePtr[RLocker[[]V], V](m)}
+	return RWSlice[V]{NewBaseSlicePtr[Locker[[]V], V](m)}
 }
 
 func NewRWSlicePtr[V any]() *RWSlice[V] { return toPtr(NewRWSlice[V]()) }
