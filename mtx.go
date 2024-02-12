@@ -166,6 +166,23 @@ func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V
 
 //----------------------
 
+type IMap[K cmp.Ordered, V any] interface {
+	Locker[map[K]V]
+	SetKey(k K, v V)
+	GetKey(k K) (out V, ok bool)
+	HasKey(k K) (found bool)
+	TakeKey(k K) (out V, ok bool)
+	DeleteKey(k K)
+	Len() (out int)
+	Each(clb func(K, V))
+	Keys() (out []K)
+	Values() (out []V)
+	Clone() (out map[K]V)
+}
+
+// Compile time checks to ensure type satisfies IMap interface
+var _ IMap[int, int] = (*Map[int, int])(nil)
+
 func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] {
 	return &Map[K, V]{m}
 }
