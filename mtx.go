@@ -20,6 +20,9 @@ type Locker[T any] interface {
 	RWithE(clb func(v T) error) error
 }
 
+// Compile time checks to ensure type satisfies Locker interface
+var _ Locker[int] = (*base[sync.Locker, int])(nil)
+
 type base[M sync.Locker, T any] struct {
 	m M
 	v T
