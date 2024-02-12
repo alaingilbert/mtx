@@ -144,33 +144,33 @@ func (m *RWMtx[T]) Replace(newVal T) (old T) {
 
 //----------------------
 
-type RWMtxMap[K cmp.Ordered, V any] struct {
+type RWMap[K cmp.Ordered, V any] struct {
 	RWMtx[map[K]V]
 }
 
-func NewMap[K cmp.Ordered, V any]() RWMtxMap[K, V] {
-	return RWMtxMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
+func NewMap[K cmp.Ordered, V any]() RWMap[K, V] {
+	return RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
 }
 
-func NewMapPtr[K cmp.Ordered, V any]() *RWMtxMap[K, V] {
-	return &RWMtxMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
+func NewMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] {
+	return &RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
 }
 
-func (m *RWMtxMap[K, V]) SetKey(k K, v V) {
+func (m *RWMap[K, V]) SetKey(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
 }
 
-func (m *RWMtxMap[K, V]) GetKey(k K) (out V, ok bool) {
+func (m *RWMap[K, V]) GetKey(k K) (out V, ok bool) {
 	m.RWith(func(m map[K]V) { out, ok = m[k] })
 	return
 }
 
-func (m *RWMtxMap[K, V]) HasKey(k K) (found bool) {
+func (m *RWMap[K, V]) HasKey(k K) (found bool) {
 	m.RWith(func(m map[K]V) { _, found = m[k] })
 	return
 }
 
-func (m *RWMtxMap[K, V]) TakeKey(k K) (out V, ok bool) {
+func (m *RWMap[K, V]) TakeKey(k K) (out V, ok bool) {
 	m.With(func(m *map[K]V) {
 		out, ok = (*m)[k]
 		if ok {
@@ -180,17 +180,17 @@ func (m *RWMtxMap[K, V]) TakeKey(k K) (out V, ok bool) {
 	return
 }
 
-func (m *RWMtxMap[K, V]) DeleteKey(k K) {
+func (m *RWMap[K, V]) DeleteKey(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
 
-func (m *RWMtxMap[K, V]) Len() (out int) {
+func (m *RWMap[K, V]) Len() (out int) {
 	m.RWith(func(m map[K]V) { out = len(m) })
 	return
 }
 
-func (m *RWMtxMap[K, V]) Each(clb func(K, V)) {
+func (m *RWMap[K, V]) Each(clb func(K, V)) {
 	m.RWith(func(m map[K]V) {
 		for k, v := range m {
 			clb(k, v)
@@ -198,7 +198,7 @@ func (m *RWMtxMap[K, V]) Each(clb func(K, V)) {
 	})
 }
 
-func (m *RWMtxMap[K, V]) Keys() (out []K) {
+func (m *RWMap[K, V]) Keys() (out []K) {
 	out = make([]K, 0)
 	m.RWith(func(m map[K]V) {
 		for k := range m {
@@ -208,7 +208,7 @@ func (m *RWMtxMap[K, V]) Keys() (out []K) {
 	return
 }
 
-func (m *RWMtxMap[K, V]) Values() (out []V) {
+func (m *RWMap[K, V]) Values() (out []V) {
 	out = make([]V, 0)
 	m.RWith(func(m map[K]V) {
 		for _, v := range m {
@@ -218,7 +218,7 @@ func (m *RWMtxMap[K, V]) Values() (out []V) {
 	return
 }
 
-func (m *RWMtxMap[K, V]) Clone() (out map[K]V) {
+func (m *RWMap[K, V]) Clone() (out map[K]V) {
 	m.RWith(func(m map[K]V) {
 		out = make(map[K]V, len(m))
 		for k, v := range m {
@@ -230,19 +230,19 @@ func (m *RWMtxMap[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
-type RWMtxSlice[T any] struct {
+type RWSlice[T any] struct {
 	RWMtx[[]T]
 }
 
-func NewSlice[T any]() RWMtxSlice[T] {
-	return RWMtxSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
+func NewSlice[T any]() RWSlice[T] {
+	return RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
 }
 
-func NewSlicePtr[T any]() *RWMtxSlice[T] {
-	return &RWMtxSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
+func NewSlicePtr[T any]() *RWSlice[T] {
+	return &RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
 }
 
-func (s *RWMtxSlice[T]) Each(clb func(T)) {
+func (s *RWSlice[T]) Each(clb func(T)) {
 	s.RWith(func(v []T) {
 		for _, e := range v {
 			clb(e)
@@ -250,27 +250,27 @@ func (s *RWMtxSlice[T]) Each(clb func(T)) {
 	})
 }
 
-func (s *RWMtxSlice[T]) Append(els ...T) {
+func (s *RWSlice[T]) Append(els ...T) {
 	s.With(func(v *[]T) { *v = append(*v, els...) })
 }
 
 // Unshift insert new element at beginning of the slice
-func (s *RWMtxSlice[T]) Unshift(el T) {
+func (s *RWSlice[T]) Unshift(el T) {
 	s.With(func(v *[]T) { *v = append([]T{el}, *v...) })
 }
 
 // Shift (pop front)
-func (s *RWMtxSlice[T]) Shift() (out T) {
+func (s *RWSlice[T]) Shift() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[0], (*v)[1:] })
 	return
 }
 
-func (s *RWMtxSlice[T]) Pop() (out T) {
+func (s *RWSlice[T]) Pop() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
 
-func (s *RWMtxSlice[T]) Clone() (out []T) {
+func (s *RWSlice[T]) Clone() (out []T) {
 	s.RWith(func(v []T) {
 		out = make([]T, len(v))
 		copy(out, v)
@@ -278,21 +278,21 @@ func (s *RWMtxSlice[T]) Clone() (out []T) {
 	return
 }
 
-func (s *RWMtxSlice[T]) Len() (out int) {
+func (s *RWSlice[T]) Len() (out int) {
 	s.RWith(func(v []T) { out = len(v) })
 	return
 }
 
-func (s *RWMtxSlice[T]) GetIdx(i int) (out T) {
+func (s *RWSlice[T]) GetIdx(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
-func (s *RWMtxSlice[T]) DeleteIdx(i int) {
+func (s *RWSlice[T]) DeleteIdx(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
-func (s *RWMtxSlice[T]) Insert(i int, el T) {
+func (s *RWSlice[T]) Insert(i int, el T) {
 	s.With(func(v *[]T) {
 		var zero T
 		*v = append(*v, zero)
@@ -303,14 +303,14 @@ func (s *RWMtxSlice[T]) Insert(i int, el T) {
 
 //----------------------
 
-type RWMtxUInt64[T ~uint64] struct {
+type RWUInt64[T ~uint64] struct {
 	RWMtx[T]
 }
 
-func (s *RWMtxUInt64[T]) Incr(diff T) {
+func (s *RWUInt64[T]) Incr(diff T) {
 	s.With(func(v *T) { *v += diff })
 }
 
-func (s *RWMtxUInt64[T]) Decr(diff T) {
+func (s *RWUInt64[T]) Decr(diff T) {
 	s.With(func(v *T) { *v -= diff })
 }

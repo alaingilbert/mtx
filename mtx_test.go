@@ -183,7 +183,7 @@ func TestRWMtxSlice_Each(t *testing.T) {
 }
 
 func TestRWMtxUInt64(t *testing.T) {
-	var m RWMtxUInt64[uint64]
+	var m RWUInt64[uint64]
 	assert.Equal(t, uint64(0), m.Get())
 	m.Incr(10)
 	assert.Equal(t, uint64(10), m.Get())
