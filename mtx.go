@@ -296,7 +296,7 @@ type ISlice[T any] interface {
 }
 
 // Compile time checks to ensure type satisfies ISlice interface
-var _ ISlice[int] = (*Slice[int])(nil)
+var _ ISlice[any] = (*Slice[any])(nil)
 
 type Slice[V any] struct {
 	Locker[[]V]
