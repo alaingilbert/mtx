@@ -251,7 +251,7 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 //----------------------
 
 func NewSlice[V any]() Slice[V] {
-	return Slice[V]{NewBaseSlicePtr[V](NewMtxPtr(make([]V, 0)))}
+	return Slice[V]{newBaseSlicePtr[V](NewMtxPtr(make([]V, 0)))}
 }
 
 func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
@@ -259,7 +259,7 @@ func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
 //----------------------
 
 func NewRWSlice[V any]() Slice[V] {
-	return Slice[V]{NewBaseSlicePtr[V](NewRWMtxPtr(make([]V, 0)))}
+	return Slice[V]{newBaseSlicePtr[V](NewRWMtxPtr(make([]V, 0)))}
 }
 
 func NewRWSlicePtr[V any]() *Slice[V] { return toPtr(NewRWSlice[V]()) }
@@ -270,7 +270,7 @@ type Slice[V any] struct {
 	Locker[[]V]
 }
 
-func NewBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
+func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
 	return &Slice[V]{m}
 }
 
