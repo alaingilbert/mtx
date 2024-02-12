@@ -5,41 +5,50 @@ import (
 	"sync"
 )
 
+// Mtx generic helper for sync.Mutex
 type Mtx[T any] struct {
 	sync.Mutex
 	v T
 }
 
+// NewMtx creates a new Mtx
 func NewMtx[T any](v T) Mtx[T] {
 	return Mtx[T]{v: v}
 }
 
+// NewMtxPtr creates a new pointer to *Mtx
 func NewMtxPtr[T any](v T) *Mtx[T] {
 	return &Mtx[T]{v: v}
 }
 
+// Val gets the wrapped value by the mutex.
+// WARNING: the caller must make sure the code that uses it is thread-safe
 func (m *Mtx[T]) Val() *T {
 	return &m.v
 }
 
+// Get safely gets the wrapped value
 func (m *Mtx[T]) Get() T {
 	m.Lock()
 	defer m.Unlock()
 	return m.v
 }
 
+// Set a new value
 func (m *Mtx[T]) Set(v T) {
 	m.Lock()
 	defer m.Unlock()
 	m.v = v
 }
 
+// WithE provide a callback scope where the wrapped value can be safely used
 func (m *Mtx[T]) WithE(clb func(v *T) error) error {
 	m.Lock()
 	defer m.Unlock()
 	return clb(&m.v)
 }
 
+// With same as WithE but do return an error
 func (m *Mtx[T]) With(clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error {
 		clb(tx)
@@ -49,47 +58,57 @@ func (m *Mtx[T]) With(clb func(v *T)) {
 
 //----------------------
 
+// RWMtx generic helper for sync.RWMutex
 type RWMtx[T any] struct {
 	sync.RWMutex
 	v T
 }
 
+// NewRWMtx creates a new RWMtx
 func NewRWMtx[T any](v T) RWMtx[T] {
 	return RWMtx[T]{v: v}
 }
 
+// NewRWMtxPtr creates a new pointer to *RWMtx
 func NewRWMtxPtr[T any](v T) *RWMtx[T] {
 	return &RWMtx[T]{v: v}
 }
 
+// Val gets the wrapped value by the mutex.
+// WARNING: the caller must make sure the code that uses it is thread-safe
 func (m *RWMtx[T]) Val() *T {
 	return &m.v
 }
 
+// Get safely gets the wrapped value using the Read part of the Read-Write mutex
 func (m *RWMtx[T]) Get() T {
 	m.RLock()
 	defer m.RUnlock()
 	return m.v
 }
 
+// Set a new value using the Write part of the Read-Write mutex
 func (m *RWMtx[T]) Set(v T) {
 	m.Lock()
 	defer m.Unlock()
 	m.v = v
 }
 
+// RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
 	m.RLock()
 	defer m.RUnlock()
 	return clb(m.v)
 }
 
+// WithE provide a callback scope where the wrapped value can be safely used
 func (m *RWMtx[T]) WithE(clb func(v *T) error) error {
 	m.Lock()
 	defer m.Unlock()
 	return clb(&m.v)
 }
 
+// RWith same as RWithE but do not return an error
 func (m *RWMtx[T]) RWith(clb func(v T)) {
 	_ = m.RWithE(func(tx T) error {
 		clb(tx)
@@ -97,6 +116,7 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 	})
 }
 
+// With same as WithE but do return an error
 func (m *RWMtx[T]) With(clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error {
 		clb(tx)
@@ -104,6 +124,7 @@ func (m *RWMtx[T]) With(clb func(v *T)) {
 	})
 }
 
+// Replace set a new value and return the old value
 func (m *RWMtx[T]) Replace(newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
