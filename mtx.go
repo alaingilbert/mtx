@@ -2,12 +2,10 @@ package mtx
 
 import (
 	"cmp"
-	"os"
-	"strconv"
 	"sync"
 )
 
-var debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
+var debug = false
 
 func toPtr[T any](v T) *T { return &v }
 
