@@ -56,6 +56,15 @@ func (m *Mtx[T]) With(clb func(v *T)) {
 	})
 }
 
+// Replace set a new value and return the old value
+func (m *Mtx[T]) Replace(newVal T) (old T) {
+	m.With(func(v *T) {
+		old = *v
+		*v = newVal
+	})
+	return
+}
+
 //----------------------
 
 // RWMtx generic helper for sync.RWMutex
