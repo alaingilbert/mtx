@@ -7,6 +7,34 @@ import (
 	"testing"
 )
 
+func TestMtx_LockUnlock(t *testing.T) {
+	m := NewMtx("old")
+	m.Lock()
+	val := m.Val()
+	*val = "new"
+	m.Unlock()
+	assert.Equal(t, "new", m.Get())
+}
+
+func TestMtx_WithE(t *testing.T) {
+	m := NewMtx("old")
+	err := m.WithE(func(v *string) error {
+		*v = "new"
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "new", m.Get())
+}
+
+func TestMtx_RWithE(t *testing.T) {
+	m := NewMtx("old")
+	err := m.RWithE(func(v string) error {
+		assert.Equal(t, "old", v)
+		return nil
+	})
+	assert.NoError(t, err)
+}
+
 func TestMtx_Set(t *testing.T) {
 	m := NewMtx("old")
 	assert.Equal(t, "old", m.Get())
@@ -37,6 +65,14 @@ func TestMtxPtr_Replace(t *testing.T) {
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Get())
+}
+
+func TestRWMtx_RLockRUnlock(t *testing.T) {
+	m := NewRWMtx("old")
+	m.RLock()
+	val := m.Val()
+	assert.Equal(t, "old", *val)
+	m.RUnlock()
 }
 
 func TestRWMtx_Replace(t *testing.T) {
@@ -225,6 +261,27 @@ func TestRWMap_Clone(t *testing.T) {
 	assert.Equal(t, 1, clonedMap["a"])
 }
 
+func TestSlice(t *testing.T) {
+	m := NewSlicePtr[int]()
+	assert.Equal(t, 0, m.Len())
+	m.Append(1, 2, 3)
+	assert.Equal(t, 3, m.Len())
+	assert.Equal(t, []int{1, 2, 3}, m.Get())
+	val2 := m.Shift()
+	assert.Equal(t, 1, val2)
+	m.Unshift(4)
+	assert.Equal(t, []int{4, 2, 3}, m.Get())
+	val2 = m.Pop()
+	assert.Equal(t, []int{4, 2}, m.Get())
+	m.DeleteIdx(1)
+	assert.Equal(t, []int{4}, m.Get())
+	m.Append(5, 6, 7)
+	assert.Equal(t, []int{4, 5, 6, 7}, m.Get())
+	assert.Equal(t, 6, m.GetIdx(2))
+	m.Insert(2, 8)
+	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Get())
+}
+
 func TestRWSlice(t *testing.T) {
 	m := NewRWSlice[int]()
 	assert.Equal(t, 0, m.Len())
@@ -264,10 +321,17 @@ func TestRWSlice_Each(t *testing.T) {
 }
 
 func TestRWUInt64(t *testing.T) {
-	var m RWUInt64[uint64]
+	m := NewRWUInt64[uint64]()
 	assert.Equal(t, uint64(0), m.Get())
 	m.Incr(10)
 	assert.Equal(t, uint64(10), m.Get())
 	m.Decr(5)
 	assert.Equal(t, uint64(5), m.Get())
+
+	mp := NewRWUInt64Ptr[uint64]()
+	assert.Equal(t, uint64(0), mp.Get())
+	mp.Incr(10)
+	assert.Equal(t, uint64(10), mp.Get())
+	mp.Decr(5)
+	assert.Equal(t, uint64(5), mp.Get())
 }

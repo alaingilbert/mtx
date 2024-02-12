@@ -5,59 +5,89 @@ import (
 	"sync"
 )
 
-// Mtx generic helper for sync.Mutex
-type Mtx[T any] struct {
-	sync.Mutex
+func toPtr[T any](v T) *T { return &v }
+
+type Locker[T any] interface {
+	sync.Locker
+	Get() T
+	Set(v T)
+	Val() *T
+	With(clb func(v *T))
+	WithE(clb func(v *T) error) error
+	RWith(clb func(v T))
+	RWithE(clb func(v T) error) error
+}
+
+type RLocker[T any] interface {
+	Locker[T]
+	RLock()
+	RUnlock()
+}
+
+type Base[M sync.Locker, T any] struct {
+	m M
 	v T
 }
 
-// NewMtx creates a new Mtx
-func NewMtx[T any](v T) Mtx[T] {
-	return Mtx[T]{v: v}
+func NewBase[M sync.Locker, T any](m M, v T) *Base[M, T] {
+	return &Base[M, T]{m: m, v: v}
 }
 
-// NewMtxPtr creates a new pointer to *Mtx
-func NewMtxPtr[T any](v T) *Mtx[T] {
-	return &Mtx[T]{v: v}
-}
+func (m *Base[M, T]) Lock()   { m.m.Lock() }
+func (m *Base[M, T]) Unlock() { m.m.Unlock() }
 
 // Val gets the wrapped value by the mutex.
 // WARNING: the caller must make sure the code that uses it is thread-safe
-func (m *Mtx[T]) Val() *T {
+func (m *Base[M, T]) Val() *T {
 	return &m.v
 }
 
 // Get safely gets the wrapped value
-func (m *Mtx[T]) Get() T {
-	m.Lock()
-	defer m.Unlock()
+func (m *Base[M, T]) Get() T {
+	m.m.Lock()
+	defer m.m.Unlock()
 	return m.v
 }
 
 // Set a new value
-func (m *Mtx[T]) Set(v T) {
-	m.Lock()
-	defer m.Unlock()
+func (m *Base[M, T]) Set(v T) {
+	m.m.Lock()
+	defer m.m.Unlock()
 	m.v = v
 }
 
 // WithE provide a callback scope where the wrapped value can be safely used
-func (m *Mtx[T]) WithE(clb func(v *T) error) error {
-	m.Lock()
-	defer m.Unlock()
+func (m *Base[M, T]) WithE(clb func(v *T) error) error {
+	m.m.Lock()
+	defer m.m.Unlock()
 	return clb(&m.v)
 }
 
 // With same as WithE but do return an error
-func (m *Mtx[T]) With(clb func(v *T)) {
+func (m *Base[M, T]) With(clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error {
 		clb(tx)
 		return nil
 	})
 }
 
+// RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
+func (m *Base[M, T]) RWithE(clb func(v T) error) error {
+	return m.WithE(func(v *T) error {
+		return clb(*v)
+	})
+}
+
+// RWith same as RWithE but do not return an error
+func (m *Base[M, T]) RWith(clb func(v T)) {
+	_ = m.WithE(func(tx *T) error {
+		clb(*tx)
+		return nil
+	})
+}
+
 // Replace set a new value and return the old value
-func (m *Mtx[T]) Replace(newVal T) (old T) {
+func (m *Base[M, T]) Replace(newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
 		*v = newVal
@@ -67,54 +97,39 @@ func (m *Mtx[T]) Replace(newVal T) (old T) {
 
 //----------------------
 
+// Mtx generic helper for sync.Mutex
+type Mtx[T any] struct {
+	*Base[*sync.Mutex, T]
+}
+
+// NewMtx creates a new Mtx
+func NewMtx[T any](v T) Mtx[T] {
+	return Mtx[T]{NewBase[*sync.Mutex, T](&sync.Mutex{}, v)}
+}
+
+// NewMtxPtr creates a new pointer to *Mtx
+func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
+
+//----------------------
+
 // RWMtx generic helper for sync.RWMutex
 type RWMtx[T any] struct {
-	sync.RWMutex
-	v T
+	*Base[*sync.RWMutex, T]
 }
 
 // NewRWMtx creates a new RWMtx
 func NewRWMtx[T any](v T) RWMtx[T] {
-	return RWMtx[T]{v: v}
+	return RWMtx[T]{NewBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
 }
 
 // NewRWMtxPtr creates a new pointer to *RWMtx
-func NewRWMtxPtr[T any](v T) *RWMtx[T] {
-	return &RWMtx[T]{v: v}
-}
-
-// Val gets the wrapped value by the mutex.
-// WARNING: the caller must make sure the code that uses it is thread-safe
-func (m *RWMtx[T]) Val() *T {
-	return &m.v
-}
-
-// Get safely gets the wrapped value using the Read part of the Read-Write mutex
-func (m *RWMtx[T]) Get() T {
-	m.RLock()
-	defer m.RUnlock()
-	return m.v
-}
-
-// Set a new value using the Write part of the Read-Write mutex
-func (m *RWMtx[T]) Set(v T) {
-	m.Lock()
-	defer m.Unlock()
-	m.v = v
-}
+func NewRWMtxPtr[T any](v T) *RWMtx[T] { return toPtr(NewRWMtx(v)) }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
-	m.RLock()
-	defer m.RUnlock()
+	m.m.RLock()
+	defer m.m.RUnlock()
 	return clb(m.v)
-}
-
-// WithE provide a callback scope where the wrapped value can be safely used
-func (m *RWMtx[T]) WithE(clb func(v *T) error) error {
-	m.Lock()
-	defer m.Unlock()
-	return clb(&m.v)
 }
 
 // RWith same as RWithE but do not return an error
@@ -125,19 +140,87 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 	})
 }
 
-// With same as WithE but do return an error
-func (m *RWMtx[T]) With(clb func(v *T)) {
-	_ = m.WithE(func(tx *T) error {
-		clb(tx)
-		return nil
+func (m *RWMtx[T]) RLock()   { m.m.RLock() }
+func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
+
+//----------------------
+
+type BaseMap[M Locker[map[K]V], K cmp.Ordered, V any] struct {
+	Locker[map[K]V]
+}
+
+func NewBaseMapPtr[M Locker[map[K]V], K cmp.Ordered, V any](m M) *BaseMap[M, K, V] {
+	return &BaseMap[M, K, V]{m}
+}
+
+func (m *BaseMap[M, K, V]) SetKey(k K, v V) {
+	m.With(func(m *map[K]V) { (*m)[k] = v })
+}
+
+func (m *BaseMap[M, K, V]) GetKey(k K) (out V, ok bool) {
+	m.RWith(func(mm map[K]V) { out, ok = mm[k] })
+	return
+}
+
+func (m *BaseMap[M, K, V]) HasKey(k K) (found bool) {
+	m.RWith(func(mm map[K]V) { _, found = mm[k] })
+	return
+}
+
+func (m *BaseMap[M, K, V]) TakeKey(k K) (out V, ok bool) {
+	m.With(func(m *map[K]V) {
+		out, ok = (*m)[k]
+		if ok {
+			delete(*m, k)
+		}
+	})
+	return
+}
+
+func (m *BaseMap[M, K, V]) DeleteKey(k K) {
+	m.With(func(m *map[K]V) { delete(*m, k) })
+	return
+}
+
+func (m *BaseMap[M, K, V]) Len() (out int) {
+	m.RWith(func(mm map[K]V) { out = len(mm) })
+	return
+}
+
+func (m *BaseMap[M, K, V]) Each(clb func(K, V)) {
+	m.RWith(func(mm map[K]V) {
+		for k, v := range mm {
+			clb(k, v)
+		}
 	})
 }
 
-// Replace set a new value and return the old value
-func (m *RWMtx[T]) Replace(newVal T) (old T) {
-	m.With(func(v *T) {
-		old = *v
-		*v = newVal
+func (m *BaseMap[M, K, V]) Keys() (out []K) {
+	out = make([]K, 0)
+	m.RWith(func(mm map[K]V) {
+		for k := range mm {
+			out = append(out, k)
+		}
+	})
+	return
+}
+
+func (m *BaseMap[M, K, V]) Values() (out []V) {
+	out = make([]V, 0)
+	m.RWith(func(mm map[K]V) {
+		for _, v := range mm {
+			out = append(out, v)
+		}
+	})
+	return
+}
+
+func (m *BaseMap[M, K, V]) Clone() (out map[K]V) {
+	m.RWith(func(mm map[K]V) {
+		out = make(map[K]V, len(mm))
+		for k, v := range mm {
+			out[k] = v
+		}
 	})
 	return
 }
@@ -145,188 +228,40 @@ func (m *RWMtx[T]) Replace(newVal T) (old T) {
 //----------------------
 
 type Map[K cmp.Ordered, V any] struct {
-	Mtx[map[K]V]
+	*BaseMap[Locker[map[K]V], K, V]
 }
 
 func NewMap[K cmp.Ordered, V any]() Map[K, V] {
-	return Map[K, V]{Mtx: NewMtx(make(map[K]V))}
+	m := NewMtxPtr(make(map[K]V))
+	return Map[K, V]{NewBaseMapPtr[Locker[map[K]V], K, V](m)}
 }
 
-func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] {
-	return &Map[K, V]{Mtx: NewMtx(make(map[K]V))}
-}
-
-func (m *Map[K, V]) SetKey(k K, v V) {
-	m.With(func(m *map[K]V) { (*m)[k] = v })
-}
-
-func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
-	m.With(func(m *map[K]V) { out, ok = (*m)[k] })
-	return
-}
-
-func (m *Map[K, V]) HasKey(k K) (found bool) {
-	m.With(func(m *map[K]V) { _, found = (*m)[k] })
-	return
-}
-
-func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
-	m.With(func(m *map[K]V) {
-		out, ok = (*m)[k]
-		if ok {
-			delete(*m, k)
-		}
-	})
-	return
-}
-
-func (m *Map[K, V]) DeleteKey(k K) {
-	m.With(func(m *map[K]V) { delete(*m, k) })
-	return
-}
-
-func (m *Map[K, V]) Len() (out int) {
-	m.With(func(m *map[K]V) { out = len(*m) })
-	return
-}
-
-func (m *Map[K, V]) Each(clb func(K, V)) {
-	m.With(func(m *map[K]V) {
-		for k, v := range *m {
-			clb(k, v)
-		}
-	})
-}
-
-func (m *Map[K, V]) Keys() (out []K) {
-	out = make([]K, 0)
-	m.With(func(m *map[K]V) {
-		for k := range *m {
-			out = append(out, k)
-		}
-	})
-	return
-}
-
-func (m *Map[K, V]) Values() (out []V) {
-	out = make([]V, 0)
-	m.With(func(m *map[K]V) {
-		for _, v := range *m {
-			out = append(out, v)
-		}
-	})
-	return
-}
-
-func (m *Map[K, V]) Clone() (out map[K]V) {
-	m.With(func(m *map[K]V) {
-		out = make(map[K]V, len(*m))
-		for k, v := range *m {
-			out[k] = v
-		}
-	})
-	return
-}
-
-type RWMap[K cmp.Ordered, V any] struct {
-	RWMtx[map[K]V]
-}
-
-func NewRWMap[K cmp.Ordered, V any]() RWMap[K, V] {
-	return RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
-}
-
-func NewRWMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] {
-	return &RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
-}
-
-func (m *RWMap[K, V]) SetKey(k K, v V) {
-	m.With(func(m *map[K]V) { (*m)[k] = v })
-}
-
-func (m *RWMap[K, V]) GetKey(k K) (out V, ok bool) {
-	m.RWith(func(m map[K]V) { out, ok = m[k] })
-	return
-}
-
-func (m *RWMap[K, V]) HasKey(k K) (found bool) {
-	m.RWith(func(m map[K]V) { _, found = m[k] })
-	return
-}
-
-func (m *RWMap[K, V]) TakeKey(k K) (out V, ok bool) {
-	m.With(func(m *map[K]V) {
-		out, ok = (*m)[k]
-		if ok {
-			delete(*m, k)
-		}
-	})
-	return
-}
-
-func (m *RWMap[K, V]) DeleteKey(k K) {
-	m.With(func(m *map[K]V) { delete(*m, k) })
-	return
-}
-
-func (m *RWMap[K, V]) Len() (out int) {
-	m.RWith(func(m map[K]V) { out = len(m) })
-	return
-}
-
-func (m *RWMap[K, V]) Each(clb func(K, V)) {
-	m.RWith(func(m map[K]V) {
-		for k, v := range m {
-			clb(k, v)
-		}
-	})
-}
-
-func (m *RWMap[K, V]) Keys() (out []K) {
-	out = make([]K, 0)
-	m.RWith(func(m map[K]V) {
-		for k := range m {
-			out = append(out, k)
-		}
-	})
-	return
-}
-
-func (m *RWMap[K, V]) Values() (out []V) {
-	out = make([]V, 0)
-	m.RWith(func(m map[K]V) {
-		for _, v := range m {
-			out = append(out, v)
-		}
-	})
-	return
-}
-
-func (m *RWMap[K, V]) Clone() (out map[K]V) {
-	m.RWith(func(m map[K]V) {
-		out = make(map[K]V, len(m))
-		for k, v := range m {
-			out[k] = v
-		}
-	})
-	return
-}
+func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]()) }
 
 //----------------------
 
-type RWSlice[T any] struct {
-	RWMtx[[]T]
+type RWMap[K cmp.Ordered, V any] struct {
+	*BaseMap[RLocker[map[K]V], K, V]
 }
 
-func NewRWSlice[T any]() RWSlice[T] {
-	return RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
+func NewRWMap[K cmp.Ordered, V any]() RWMap[K, V] {
+	m := NewRWMtxPtr(make(map[K]V))
+	return RWMap[K, V]{NewBaseMapPtr[RLocker[map[K]V], K, V](m)}
 }
 
-func NewRWSlicePtr[T any]() *RWSlice[T] {
-	return &RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
+func NewRWMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] { return toPtr(NewRWMap[K, V]()) }
+
+//----------------------
+
+type BaseSlice[M Locker[[]V], V any] struct {
+	Locker[[]V]
 }
 
-func (s *RWSlice[T]) Each(clb func(T)) {
+func NewBaseSlicePtr[M Locker[[]V], V any](m M) *BaseSlice[M, V] {
+	return &BaseSlice[M, V]{m}
+}
+
+func (s *BaseSlice[M, T]) Each(clb func(T)) {
 	s.RWith(func(v []T) {
 		for _, e := range v {
 			clb(e)
@@ -334,27 +269,27 @@ func (s *RWSlice[T]) Each(clb func(T)) {
 	})
 }
 
-func (s *RWSlice[T]) Append(els ...T) {
+func (s *BaseSlice[M, T]) Append(els ...T) {
 	s.With(func(v *[]T) { *v = append(*v, els...) })
 }
 
 // Unshift insert new element at beginning of the slice
-func (s *RWSlice[T]) Unshift(el T) {
+func (s *BaseSlice[M, T]) Unshift(el T) {
 	s.With(func(v *[]T) { *v = append([]T{el}, *v...) })
 }
 
 // Shift (pop front)
-func (s *RWSlice[T]) Shift() (out T) {
+func (s *BaseSlice[M, T]) Shift() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[0], (*v)[1:] })
 	return
 }
 
-func (s *RWSlice[T]) Pop() (out T) {
+func (s *BaseSlice[M, T]) Pop() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
 
-func (s *RWSlice[T]) Clone() (out []T) {
+func (s *BaseSlice[M, T]) Clone() (out []T) {
 	s.RWith(func(v []T) {
 		out = make([]T, len(v))
 		copy(out, v)
@@ -362,21 +297,21 @@ func (s *RWSlice[T]) Clone() (out []T) {
 	return
 }
 
-func (s *RWSlice[T]) Len() (out int) {
+func (s *BaseSlice[M, T]) Len() (out int) {
 	s.RWith(func(v []T) { out = len(v) })
 	return
 }
 
-func (s *RWSlice[T]) GetIdx(i int) (out T) {
+func (s *BaseSlice[M, T]) GetIdx(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
-func (s *RWSlice[T]) DeleteIdx(i int) {
+func (s *BaseSlice[M, T]) DeleteIdx(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
-func (s *RWSlice[T]) Insert(i int, el T) {
+func (s *BaseSlice[M, T]) Insert(i int, el T) {
 	s.With(func(v *[]T) {
 		var zero T
 		*v = append(*v, zero)
@@ -387,8 +322,42 @@ func (s *RWSlice[T]) Insert(i int, el T) {
 
 //----------------------
 
+type Slice[V any] struct {
+	*BaseSlice[Locker[[]V], V]
+}
+
+func NewSlice[V any]() Slice[V] {
+	m := NewMtxPtr(make([]V, 0))
+	return Slice[V]{NewBaseSlicePtr[Locker[[]V], V](m)}
+}
+
+func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
+
+//----------------------
+
+type RWSlice[V any] struct {
+	*BaseSlice[RLocker[[]V], V]
+}
+
+func NewRWSlice[V any]() RWSlice[V] {
+	m := NewRWMtxPtr(make([]V, 0))
+	return RWSlice[V]{NewBaseSlicePtr[RLocker[[]V], V](m)}
+}
+
+func NewRWSlicePtr[V any]() *RWSlice[V] { return toPtr(NewRWSlice[V]()) }
+
+//----------------------
+
 type RWUInt64[T ~uint64] struct {
-	RWMtx[T]
+	*RWMtx[T]
+}
+
+func NewRWUInt64[T ~uint64]() RWUInt64[T] {
+	return RWUInt64[T]{NewRWMtxPtr[T](0)}
+}
+
+func NewRWUInt64Ptr[T ~uint64]() *RWUInt64[T] {
+	return &RWUInt64[T]{NewRWMtxPtr[T](0)}
 }
 
 func (s *RWUInt64[T]) Incr(diff T) {
