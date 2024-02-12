@@ -43,8 +43,8 @@ func (m *base[M, T]) Val() *T {
 
 // WithE provide a callback scope where the wrapped value can be safely used
 func (m *base[M, T]) WithE(clb func(v *T) error) error {
-	m.m.Lock()
-	defer m.m.Unlock()
+	m.Lock()
+	defer m.Unlock()
 	return clb(&m.v)
 }
 
@@ -135,8 +135,8 @@ func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
 	if debug {
 		println("RWMtx RWithE")
 	}
-	m.m.RLock()
-	defer m.m.RUnlock()
+	m.RLock()
+	defer m.RUnlock()
 	return clb(m.v)
 }
 
