@@ -39,20 +39,6 @@ func (m *Base[M, T]) Val() *T {
 	return &m.v
 }
 
-// Get safely gets the wrapped value
-func (m *Base[M, T]) Get() T {
-	m.m.Lock()
-	defer m.m.Unlock()
-	return m.v
-}
-
-// Set a new value
-func (m *Base[M, T]) Set(v T) {
-	m.m.Lock()
-	defer m.m.Unlock()
-	m.v = v
-}
-
 // WithE provide a callback scope where the wrapped value can be safely used
 func (m *Base[M, T]) WithE(clb func(v *T) error) error {
 	m.m.Lock()
@@ -81,6 +67,17 @@ func (m *Base[M, T]) RWith(clb func(v T)) {
 		clb(tx)
 		return nil
 	})
+}
+
+// Get safely gets the wrapped value
+func (m *Base[M, T]) Get() (out T) {
+	m.RWith(func(v T) { out = v })
+	return out
+}
+
+// Set a new value
+func (m *Base[M, T]) Set(newV T) {
+	m.With(func(v *T) { *v = newV })
 }
 
 // Replace set a new value and return the old value
