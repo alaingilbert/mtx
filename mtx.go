@@ -20,36 +20,36 @@ type Locker[T any] interface {
 	RWithE(clb func(v T) error) error
 }
 
-type Base[M sync.Locker, T any] struct {
+type base[M sync.Locker, T any] struct {
 	m M
 	v T
 }
 
-func newBase[M sync.Locker, T any](m M, v T) *Base[M, T] {
-	return &Base[M, T]{m: m, v: v}
+func newBase[M sync.Locker, T any](m M, v T) *base[M, T] {
+	return &base[M, T]{m: m, v: v}
 }
 
 // Lock exposes the underlying sync.Mutex Lock function
-func (m *Base[M, T]) Lock() { m.m.Lock() }
+func (m *base[M, T]) Lock() { m.m.Lock() }
 
 // Unlock exposes the underlying sync.Mutex Unlock function
-func (m *Base[M, T]) Unlock() { m.m.Unlock() }
+func (m *base[M, T]) Unlock() { m.m.Unlock() }
 
 // Val gets the wrapped value by the mutex.
 // WARNING: the caller must make sure the code that uses it is thread-safe
-func (m *Base[M, T]) Val() *T {
+func (m *base[M, T]) Val() *T {
 	return &m.v
 }
 
 // WithE provide a callback scope where the wrapped value can be safely used
-func (m *Base[M, T]) WithE(clb func(v *T) error) error {
+func (m *base[M, T]) WithE(clb func(v *T) error) error {
 	m.m.Lock()
 	defer m.m.Unlock()
 	return clb(&m.v)
 }
 
 // With same as WithE but do return an error
-func (m *Base[M, T]) With(clb func(v *T)) {
+func (m *base[M, T]) With(clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error {
 		clb(tx)
 		return nil
@@ -57,9 +57,9 @@ func (m *Base[M, T]) With(clb func(v *T)) {
 }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
-func (m *Base[M, T]) RWithE(clb func(v T) error) error {
+func (m *base[M, T]) RWithE(clb func(v T) error) error {
 	if debug {
-		println("Base RWithE")
+		println("base RWithE")
 	}
 	return m.WithE(func(v *T) error {
 		return clb(*v)
@@ -67,7 +67,7 @@ func (m *Base[M, T]) RWithE(clb func(v T) error) error {
 }
 
 // RWith same as RWithE but do not return an error
-func (m *Base[M, T]) RWith(clb func(v T)) {
+func (m *base[M, T]) RWith(clb func(v T)) {
 	_ = m.RWithE(func(tx T) error {
 		clb(tx)
 		return nil
@@ -75,18 +75,18 @@ func (m *Base[M, T]) RWith(clb func(v T)) {
 }
 
 // Get safely gets the wrapped value
-func (m *Base[M, T]) Get() (out T) {
+func (m *base[M, T]) Get() (out T) {
 	m.RWith(func(v T) { out = v })
 	return out
 }
 
 // Set a new value
-func (m *Base[M, T]) Set(newV T) {
+func (m *base[M, T]) Set(newV T) {
 	m.With(func(v *T) { *v = newV })
 }
 
 // Replace set a new value and return the old value
-func (m *Base[M, T]) Replace(newVal T) (old T) {
+func (m *base[M, T]) Replace(newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
 		*v = newVal
@@ -98,7 +98,7 @@ func (m *Base[M, T]) Replace(newVal T) (old T) {
 
 // Mtx generic helper for sync.Mutex
 type Mtx[T any] struct {
-	*Base[*sync.Mutex, T]
+	*base[*sync.Mutex, T]
 }
 
 // NewMtx creates a new Mtx
@@ -113,7 +113,7 @@ func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
 
 // RWMtx generic helper for sync.RWMutex
 type RWMtx[T any] struct {
-	*Base[*sync.RWMutex, T]
+	*base[*sync.RWMutex, T]
 }
 
 // NewRWMtx creates a new RWMtx
