@@ -152,29 +152,29 @@ func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
 
 //----------------------
 
-type BaseMap[K cmp.Ordered, V any] struct {
+func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] {
+	return &Map[K, V]{m}
+}
+
+type Map[K cmp.Ordered, V any] struct {
 	Locker[map[K]V]
 }
 
-func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *BaseMap[K, V] {
-	return &BaseMap[K, V]{m}
-}
-
-func (m *BaseMap[K, V]) SetKey(k K, v V) {
+func (m *Map[K, V]) SetKey(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
 }
 
-func (m *BaseMap[K, V]) GetKey(k K) (out V, ok bool) {
+func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
 	m.RWith(func(mm map[K]V) { out, ok = mm[k] })
 	return
 }
 
-func (m *BaseMap[K, V]) HasKey(k K) (found bool) {
+func (m *Map[K, V]) HasKey(k K) (found bool) {
 	m.RWith(func(mm map[K]V) { _, found = mm[k] })
 	return
 }
 
-func (m *BaseMap[K, V]) TakeKey(k K) (out V, ok bool) {
+func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
 	m.With(func(m *map[K]V) {
 		out, ok = (*m)[k]
 		if ok {
@@ -184,17 +184,17 @@ func (m *BaseMap[K, V]) TakeKey(k K) (out V, ok bool) {
 	return
 }
 
-func (m *BaseMap[K, V]) DeleteKey(k K) {
+func (m *Map[K, V]) DeleteKey(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
 
-func (m *BaseMap[K, V]) Len() (out int) {
+func (m *Map[K, V]) Len() (out int) {
 	m.RWith(func(mm map[K]V) { out = len(mm) })
 	return
 }
 
-func (m *BaseMap[K, V]) Each(clb func(K, V)) {
+func (m *Map[K, V]) Each(clb func(K, V)) {
 	m.RWith(func(mm map[K]V) {
 		for k, v := range mm {
 			clb(k, v)
@@ -202,7 +202,7 @@ func (m *BaseMap[K, V]) Each(clb func(K, V)) {
 	})
 }
 
-func (m *BaseMap[K, V]) Keys() (out []K) {
+func (m *Map[K, V]) Keys() (out []K) {
 	out = make([]K, 0)
 	m.RWith(func(mm map[K]V) {
 		for k := range mm {
@@ -212,7 +212,7 @@ func (m *BaseMap[K, V]) Keys() (out []K) {
 	return
 }
 
-func (m *BaseMap[K, V]) Values() (out []V) {
+func (m *Map[K, V]) Values() (out []V) {
 	out = make([]V, 0)
 	m.RWith(func(mm map[K]V) {
 		for _, v := range mm {
@@ -222,7 +222,7 @@ func (m *BaseMap[K, V]) Values() (out []V) {
 	return
 }
 
-func (m *BaseMap[K, V]) Clone() (out map[K]V) {
+func (m *Map[K, V]) Clone() (out map[K]V) {
 	m.RWith(func(mm map[K]V) {
 		out = make(map[K]V, len(mm))
 		for k, v := range mm {
@@ -234,10 +234,6 @@ func (m *BaseMap[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
-type Map[K cmp.Ordered, V any] struct {
-	*BaseMap[K, V]
-}
-
 func NewMap[K cmp.Ordered, V any]() Map[K, V] {
 	m := NewMtxPtr(make(map[K]V))
 	return Map[K, V]{newBaseMapPtr[K, V](m)}
@@ -247,16 +243,12 @@ func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]())
 
 //----------------------
 
-type RWMap[K cmp.Ordered, V any] struct {
-	*BaseMap[K, V]
-}
-
-func NewRWMap[K cmp.Ordered, V any]() RWMap[K, V] {
+func NewRWMap[K cmp.Ordered, V any]() Map[K, V] {
 	m := NewRWMtxPtr(make(map[K]V))
-	return RWMap[K, V]{newBaseMapPtr[K, V](m)}
+	return Map[K, V]{newBaseMapPtr[K, V](m)}
 }
 
-func NewRWMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] { return toPtr(NewRWMap[K, V]()) }
+func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V]()) }
 
 //----------------------
 
