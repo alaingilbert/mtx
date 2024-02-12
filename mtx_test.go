@@ -64,7 +64,7 @@ func TestRWMtx_Val(t *testing.T) {
 }
 
 func TestRWMap_GetKey(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	_, ok := m.GetKey("a")
 	assert.False(t, ok)
 	m.SetKey("a", 1)
@@ -74,7 +74,7 @@ func TestRWMap_GetKey(t *testing.T) {
 }
 
 func TestRWMap_HasKey(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	assert.False(t, m.HasKey("a"))
 	m.SetKey("a", 1)
 	assert.True(t, m.HasKey("a"))
@@ -83,7 +83,7 @@ func TestRWMap_HasKey(t *testing.T) {
 }
 
 func TestRWMap_TakeKey(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	m.SetKey("a", 1)
 	m.SetKey("b", 2)
 	m.SetKey("c", 3)
@@ -99,7 +99,7 @@ func TestRWMap_TakeKey(t *testing.T) {
 }
 
 func TestRWMap_DeleteKey(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	assert.Equal(t, 0, m.Len())
 	m.DeleteKey("a")
 	m.SetKey("a", 1)
@@ -109,7 +109,7 @@ func TestRWMap_DeleteKey(t *testing.T) {
 }
 
 func TestRWMap_Values(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	assert.Equal(t, []int{}, m.Values())
 	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
 	values := m.Values()
@@ -118,7 +118,7 @@ func TestRWMap_Values(t *testing.T) {
 }
 
 func TestRWMap_Keys(t *testing.T) {
-	m := NewMapPtr[string, int]()
+	m := NewRWMapPtr[string, int]()
 	assert.Equal(t, []string{}, m.Keys())
 	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
 	keys := m.Keys()
@@ -127,7 +127,7 @@ func TestRWMap_Keys(t *testing.T) {
 }
 
 func TestRWMap_Each(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
 	arr := make([]string, 0)
 	m.Each(func(k string, v int) {
@@ -138,14 +138,14 @@ func TestRWMap_Each(t *testing.T) {
 }
 
 func TestRWMap_Clone(t *testing.T) {
-	m := NewMap[string, int]()
+	m := NewRWMap[string, int]()
 	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
 	clonedMap := m.Clone()
 	assert.Equal(t, 1, clonedMap["a"])
 }
 
 func TestRWSlice(t *testing.T) {
-	m := NewSlice[int]()
+	m := NewRWSlice[int]()
 	assert.Equal(t, 0, m.Len())
 	m.Append(1, 2, 3)
 	assert.Equal(t, 3, m.Len())
@@ -166,14 +166,14 @@ func TestRWSlice(t *testing.T) {
 }
 
 func TestRWSlice_Clone(t *testing.T) {
-	m := NewSlice[int]()
+	m := NewRWSlice[int]()
 	m.Set([]int{1, 2, 3})
 	clonedSlice := m.Clone()
 	assert.Equal(t, []int{1, 2, 3}, clonedSlice)
 }
 
 func TestRWSlice_Each(t *testing.T) {
-	m := NewSlicePtr[int]()
+	m := NewRWSlicePtr[int]()
 	m.Append(1, 2, 3)
 	arr := make([]string, 0)
 	m.Each(func(el int) {

@@ -148,11 +148,11 @@ type RWMap[K cmp.Ordered, V any] struct {
 	RWMtx[map[K]V]
 }
 
-func NewMap[K cmp.Ordered, V any]() RWMap[K, V] {
+func NewRWMap[K cmp.Ordered, V any]() RWMap[K, V] {
 	return RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
 }
 
-func NewMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] {
+func NewRWMapPtr[K cmp.Ordered, V any]() *RWMap[K, V] {
 	return &RWMap[K, V]{RWMtx: NewRWMtx(make(map[K]V))}
 }
 
@@ -234,11 +234,11 @@ type RWSlice[T any] struct {
 	RWMtx[[]T]
 }
 
-func NewSlice[T any]() RWSlice[T] {
+func NewRWSlice[T any]() RWSlice[T] {
 	return RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
 }
 
-func NewSlicePtr[T any]() *RWSlice[T] {
+func NewRWSlicePtr[T any]() *RWSlice[T] {
 	return &RWSlice[T]{RWMtx: NewRWMtx(make([]T, 0))}
 }
 
