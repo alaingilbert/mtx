@@ -153,8 +153,7 @@ func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
 //----------------------
 
 func NewMap[K cmp.Ordered, V any]() Map[K, V] {
-	m := NewMtxPtr(make(map[K]V))
-	return Map[K, V]{newBaseMapPtr[K, V](m)}
+	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(make(map[K]V)))}
 }
 
 func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]()) }
@@ -162,8 +161,7 @@ func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewMap[K, V]())
 //----------------------
 
 func NewRWMap[K cmp.Ordered, V any]() Map[K, V] {
-	m := NewRWMtxPtr(make(map[K]V))
-	return Map[K, V]{newBaseMapPtr[K, V](m)}
+	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(make(map[K]V)))}
 }
 
 func NewRWMapPtr[K cmp.Ordered, V any]() *Map[K, V] { return toPtr(NewRWMap[K, V]()) }
