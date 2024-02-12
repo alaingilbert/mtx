@@ -57,3 +57,13 @@ func TestRWMtxMap_TakeKey(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, 2, m.Len())
 }
+
+func TestRWMtxMap_DeleteKey(t *testing.T) {
+	m := NewMap[string, int]()
+	assert.Equal(t, 0, m.Len())
+	m.DeleteKey("a")
+	m.SetKey("a", 1)
+	assert.Equal(t, 1, m.Len())
+	m.DeleteKey("a")
+	assert.Equal(t, 0, m.Len())
+}
