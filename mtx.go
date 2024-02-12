@@ -281,6 +281,23 @@ func NewRWSlicePtr[V any]() *Slice[V] { return toPtr(NewRWSlice[V]()) }
 
 //----------------------
 
+type ISlice[T any] interface {
+	Locker[[]T]
+	Append(els ...T)
+	Clone() (out []T)
+	DeleteIdx(i int)
+	Each(clb func(T))
+	GetIdx(i int) (out T)
+	Insert(i int, el T)
+	Len() (out int)
+	Pop() (out T)
+	Shift() (out T)
+	Unshift(el T)
+}
+
+// Compile time checks to ensure type satisfies ISlice interface
+var _ ISlice[int] = (*Slice[int])(nil)
+
 type Slice[V any] struct {
 	Locker[[]V]
 }
