@@ -144,6 +144,90 @@ func (m *RWMtx[T]) Replace(newVal T) (old T) {
 
 //----------------------
 
+type Map[K cmp.Ordered, V any] struct {
+	Mtx[map[K]V]
+}
+
+func NewMap[K cmp.Ordered, V any]() Map[K, V] {
+	return Map[K, V]{Mtx: NewMtx(make(map[K]V))}
+}
+
+func NewMapPtr[K cmp.Ordered, V any]() *Map[K, V] {
+	return &Map[K, V]{Mtx: NewMtx(make(map[K]V))}
+}
+
+func (m *Map[K, V]) SetKey(k K, v V) {
+	m.With(func(m *map[K]V) { (*m)[k] = v })
+}
+
+func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
+	m.With(func(m *map[K]V) { out, ok = (*m)[k] })
+	return
+}
+
+func (m *Map[K, V]) HasKey(k K) (found bool) {
+	m.With(func(m *map[K]V) { _, found = (*m)[k] })
+	return
+}
+
+func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
+	m.With(func(m *map[K]V) {
+		out, ok = (*m)[k]
+		if ok {
+			delete(*m, k)
+		}
+	})
+	return
+}
+
+func (m *Map[K, V]) DeleteKey(k K) {
+	m.With(func(m *map[K]V) { delete(*m, k) })
+	return
+}
+
+func (m *Map[K, V]) Len() (out int) {
+	m.With(func(m *map[K]V) { out = len(*m) })
+	return
+}
+
+func (m *Map[K, V]) Each(clb func(K, V)) {
+	m.With(func(m *map[K]V) {
+		for k, v := range *m {
+			clb(k, v)
+		}
+	})
+}
+
+func (m *Map[K, V]) Keys() (out []K) {
+	out = make([]K, 0)
+	m.With(func(m *map[K]V) {
+		for k := range *m {
+			out = append(out, k)
+		}
+	})
+	return
+}
+
+func (m *Map[K, V]) Values() (out []V) {
+	out = make([]V, 0)
+	m.With(func(m *map[K]V) {
+		for _, v := range *m {
+			out = append(out, v)
+		}
+	})
+	return
+}
+
+func (m *Map[K, V]) Clone() (out map[K]V) {
+	m.With(func(m *map[K]V) {
+		out = make(map[K]V, len(*m))
+		for k, v := range *m {
+			out[k] = v
+		}
+	})
+	return
+}
+
 type RWMap[K cmp.Ordered, V any] struct {
 	RWMtx[map[K]V]
 }
