@@ -124,6 +124,12 @@ func NewRWMtx[T any](v T) RWMtx[T] {
 // NewRWMtxPtr creates a new pointer to *RWMtx
 func NewRWMtxPtr[T any](v T) *RWMtx[T] { return toPtr(NewRWMtx(v)) }
 
+// RLock exposes the underlying sync.RWMutex RLock function
+func (m *RWMtx[T]) RLock() { m.m.RLock() }
+
+// RUnlock exposes the underlying sync.RWMutex RUnlock function
+func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
+
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
 	if debug {
@@ -141,12 +147,6 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 		return nil
 	})
 }
-
-// RLock exposes the underlying sync.RWMutex RLock function
-func (m *RWMtx[T]) RLock() { m.m.RLock() }
-
-// RUnlock exposes the underlying sync.RWMutex RUnlock function
-func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
 
 //----------------------
 
