@@ -250,39 +250,31 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
-type Slice[V any] struct {
-	*BaseSlice[Locker[[]V], V]
-}
-
 func NewSlice[V any]() Slice[V] {
-	return Slice[V]{NewBaseSlicePtr[Locker[[]V], V](NewMtxPtr(make([]V, 0)))}
+	return Slice[V]{NewBaseSlicePtr[V](NewMtxPtr(make([]V, 0)))}
 }
 
 func NewSlicePtr[V any]() *Slice[V] { return toPtr(NewSlice[V]()) }
 
 //----------------------
 
-type RWSlice[V any] struct {
-	*BaseSlice[Locker[[]V], V]
+func NewRWSlice[V any]() Slice[V] {
+	return Slice[V]{NewBaseSlicePtr[V](NewRWMtxPtr(make([]V, 0)))}
 }
 
-func NewRWSlice[V any]() RWSlice[V] {
-	return RWSlice[V]{NewBaseSlicePtr[Locker[[]V], V](NewRWMtxPtr(make([]V, 0)))}
-}
-
-func NewRWSlicePtr[V any]() *RWSlice[V] { return toPtr(NewRWSlice[V]()) }
+func NewRWSlicePtr[V any]() *Slice[V] { return toPtr(NewRWSlice[V]()) }
 
 //----------------------
 
-type BaseSlice[M Locker[[]V], V any] struct {
+type Slice[V any] struct {
 	Locker[[]V]
 }
 
-func NewBaseSlicePtr[M Locker[[]V], V any](m M) *BaseSlice[M, V] {
-	return &BaseSlice[M, V]{m}
+func NewBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
+	return &Slice[V]{m}
 }
 
-func (s *BaseSlice[M, T]) Each(clb func(T)) {
+func (s *Slice[T]) Each(clb func(T)) {
 	s.RWith(func(v []T) {
 		for _, e := range v {
 			clb(e)
@@ -290,27 +282,27 @@ func (s *BaseSlice[M, T]) Each(clb func(T)) {
 	})
 }
 
-func (s *BaseSlice[M, T]) Append(els ...T) {
+func (s *Slice[T]) Append(els ...T) {
 	s.With(func(v *[]T) { *v = append(*v, els...) })
 }
 
 // Unshift insert new element at beginning of the slice
-func (s *BaseSlice[M, T]) Unshift(el T) {
+func (s *Slice[T]) Unshift(el T) {
 	s.With(func(v *[]T) { *v = append([]T{el}, *v...) })
 }
 
 // Shift (pop front)
-func (s *BaseSlice[M, T]) Shift() (out T) {
+func (s *Slice[T]) Shift() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[0], (*v)[1:] })
 	return
 }
 
-func (s *BaseSlice[M, T]) Pop() (out T) {
+func (s *Slice[T]) Pop() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
 
-func (s *BaseSlice[M, T]) Clone() (out []T) {
+func (s *Slice[T]) Clone() (out []T) {
 	s.RWith(func(v []T) {
 		out = make([]T, len(v))
 		copy(out, v)
@@ -318,21 +310,21 @@ func (s *BaseSlice[M, T]) Clone() (out []T) {
 	return
 }
 
-func (s *BaseSlice[M, T]) Len() (out int) {
+func (s *Slice[T]) Len() (out int) {
 	s.RWith(func(v []T) { out = len(v) })
 	return
 }
 
-func (s *BaseSlice[M, T]) GetIdx(i int) (out T) {
+func (s *Slice[T]) GetIdx(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
-func (s *BaseSlice[M, T]) DeleteIdx(i int) {
+func (s *Slice[T]) DeleteIdx(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
-func (s *BaseSlice[M, T]) Insert(i int, el T) {
+func (s *Slice[T]) Insert(i int, el T) {
 	s.With(func(v *[]T) {
 		var zero T
 		*v = append(*v, zero)
