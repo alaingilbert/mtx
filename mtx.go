@@ -14,6 +14,7 @@ type Locker[T any] interface {
 	Get() T
 	Set(v T)
 	Val() *T
+	Replace(newVal T) (old T)
 	With(clb func(v *T))
 	WithE(clb func(v *T) error) error
 	RWith(clb func(v T))
