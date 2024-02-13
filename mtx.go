@@ -219,6 +219,7 @@ func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewR
 // IMap is the interface that Map implements
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
+	Clear()
 	Clone() (out map[K]V)
 	ContainsKey(k K) (found bool)
 	Delete(k K)
@@ -249,6 +250,11 @@ type Map[K cmp.Ordered, V any] struct {
 func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
 	m.RWith(func(v map[K]V) { out, err = json.Marshal(v) })
 	return
+}
+
+// Clear clears the map, removing all key-value pairs
+func (m *Map[K, V]) Clear() {
+	m.With(func(m *map[K]V) { clear(*m) })
 }
 
 // Insert inserts a key/value in the map
@@ -382,6 +388,7 @@ func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice[T](v)) }
 type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
+	Clear()
 	Clone() (out []T)
 	Each(clb func(T))
 	Filter(func(T) bool) []T
@@ -420,6 +427,11 @@ func (s *Slice[T]) Each(clb func(T)) {
 			clb(e)
 		}
 	})
+}
+
+// Clear clears the vector, removing all values
+func (s *Slice[T]) Clear() {
+	s.With(func(v *[]T) { *v = nil; *v = make([]T, 0) })
 }
 
 // Append appends elements at the end of the slice

@@ -333,6 +333,13 @@ func TestMap_IsEmpty(t *testing.T) {
 	assert.True(t, m.IsEmpty())
 }
 
+func TestMap_Clear(t *testing.T) {
+	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
+	assert.False(t, m.IsEmpty())
+	m.Clear()
+	assert.True(t, m.IsEmpty())
+}
+
 func TestMap_MarshalJSON(t *testing.T) {
 	// Mtx ptr; works
 	var tmp1 = struct{ Field *Map[string, int] }{Field: NewRWMapPtr(map[string]int{"a": 1})}
@@ -443,6 +450,14 @@ func TestSlice_IsEmpty(t *testing.T) {
 	assert.False(t, s.IsEmpty())
 	s.Pop()
 	assert.True(t, s.IsEmpty())
+}
+
+func TestSlice_Clear(t *testing.T) {
+	s := NewSlice([]int{1, 2, 3})
+	assert.False(t, s.IsEmpty())
+	s.Clear()
+	assert.True(t, s.IsEmpty())
+	assert.Equal(t, []int{}, s.Load())
 }
 
 func TestSlice_MarshalJSON(t *testing.T) {
