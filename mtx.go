@@ -123,7 +123,7 @@ func (m *base[M, T]) Store(newV T) {
 	m.With(func(v *T) { *v = newV })
 }
 
-// Replace set a new value and return the old value
+// Swap set a new value and return the old value
 func (m *base[M, T]) Swap(newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
