@@ -93,6 +93,6 @@ func someOtherFn(s Something) {
     s.SharedMapMtx.Lock()
     defer s.SharedMapMtx.Unlock()
     val := s.SharedMap.Val()
-	*val = 1
+    *val = 1
 }
 ```
