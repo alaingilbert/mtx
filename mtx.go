@@ -163,7 +163,7 @@ func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
 	return v
 }
 
-// NewMap returns a new Map with a sync.Locker as backend
+// NewMap returns a new Map with a sync.Mutex as backend
 func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(defaultMap(v)))}
 }
@@ -173,7 +173,7 @@ func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap
 
 //----------------------
 
-// NewRWMap returns a new Map with a sync.RWLocker as backend
+// NewRWMap returns a new Map with a sync.RWMutex as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(defaultMap(v)))}
 }
@@ -312,7 +312,7 @@ func defaultSlice[T any](v []T) []T {
 	return v
 }
 
-// NewSlice returns a new Slice with a sync.Locker as backend
+// NewSlice returns a new Slice with a sync.Mutex as backend
 func NewSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewMtxPtr(defaultSlice(v)))}
 }
@@ -322,7 +322,7 @@ func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
 
 //----------------------
 
-// NewRWSlice returns a new Slice with a sync.RWLocker as backend
+// NewRWSlice returns a new Slice with a sync.RWMutex as backend
 func NewRWSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewRWMtxPtr(defaultSlice(v)))}
 }
