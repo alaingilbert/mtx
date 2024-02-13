@@ -448,7 +448,7 @@ func TestSlice_MarshalJSON(t *testing.T) {
 	assert.Equal(t, `{"Field":[1,2,3]}`, string(out3))
 }
 
-func TestRWUInt64(t *testing.T) {
+func TestNumber(t *testing.T) {
 	n1 := NewNumber(uint64(0))
 	assert.Equal(t, uint64(0), n1.Load())
 	n1.Add(10)
