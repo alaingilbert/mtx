@@ -154,6 +154,7 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 
 //----------------------
 
+// returns a default empty map if v is nil
 func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
 	if v == nil {
 		v = make(map[K]V)
@@ -161,22 +162,27 @@ func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
 	return v
 }
 
+// NewMap returns a new Map with a sync.Locker as backend
 func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(defaultMap(v)))}
 }
 
+// NewMapPtr same as NewMap, but as a pointer
 func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap[K, V](v)) }
 
 //----------------------
 
+// NewRWMap returns a new Map with a sync.RWLocker as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(defaultMap(v)))}
 }
 
+// NewRWMapPtr same as NewRWMap, but as a pointer
 func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap[K, V](v)) }
 
 //----------------------
 
+// IMap is the interface that Map implements
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
 	Clone() (out map[K]V)
@@ -198,24 +204,29 @@ func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] {
 	return &Map[K, V]{m}
 }
 
+// Map mutex protected map
 type Map[K cmp.Ordered, V any] struct {
 	Locker[map[K]V]
 }
 
+// SetKey sets a key in the map
 func (m *Map[K, V]) SetKey(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
 }
 
+// GetKey gets a key in from map
 func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
 	m.RWith(func(mm map[K]V) { out, ok = mm[k] })
 	return
 }
 
+// HasKey returns either or not the map contains the key
 func (m *Map[K, V]) HasKey(k K) (found bool) {
 	m.RWith(func(mm map[K]V) { _, found = mm[k] })
 	return
 }
 
+// TakeKey if the key exists, its value is returned to the caller and the key deleted from the map
 func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
 	m.With(func(m *map[K]V) {
 		out, ok = (*m)[k]
@@ -226,16 +237,19 @@ func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
 	return
 }
 
+// DeleteKey deletes a key from the map
 func (m *Map[K, V]) DeleteKey(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
 
+// Len returns the length of the map
 func (m *Map[K, V]) Len() (out int) {
 	m.RWith(func(mm map[K]V) { out = len(mm) })
 	return
 }
 
+// Each iterates each key/value of the map
 func (m *Map[K, V]) Each(clb func(K, V)) {
 	m.RWith(func(mm map[K]V) {
 		for k, v := range mm {
@@ -244,6 +258,7 @@ func (m *Map[K, V]) Each(clb func(K, V)) {
 	})
 }
 
+// Keys returns a slice of all keys
 func (m *Map[K, V]) Keys() (out []K) {
 	out = make([]K, 0)
 	m.RWith(func(mm map[K]V) {
@@ -254,6 +269,7 @@ func (m *Map[K, V]) Keys() (out []K) {
 	return
 }
 
+// Values returns a slice of all values
 func (m *Map[K, V]) Values() (out []V) {
 	out = make([]V, 0)
 	m.RWith(func(mm map[K]V) {
@@ -264,6 +280,7 @@ func (m *Map[K, V]) Values() (out []V) {
 	return
 }
 
+// Clone returns a clone of the map
 func (m *Map[K, V]) Clone() (out map[K]V) {
 	m.RWith(func(mm map[K]V) {
 		out = make(map[K]V, len(mm))
@@ -276,6 +293,7 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //----------------------
 
+// returns a default empty slice if v is nil
 func defaultSlice[T any](v []T) []T {
 	if v == nil {
 		v = make([]T, 0)
@@ -283,22 +301,27 @@ func defaultSlice[T any](v []T) []T {
 	return v
 }
 
+// NewSlice returns a new Slice with a sync.Locker as backend
 func NewSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewMtxPtr(defaultSlice(v)))}
 }
 
+// NewSlicePtr same as NewSlice, but as a pointer
 func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
 
 //----------------------
 
+// NewRWSlice returns a new Slice with a sync.RWLocker as backend
 func NewRWSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](NewRWMtxPtr(defaultSlice(v)))}
 }
 
+// NewRWSlicePtr same as NewRWSlice, but as a pointer
 func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice[T](v)) }
 
 //----------------------
 
+// ISlice is the interface that Slice implements
 type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
@@ -316,6 +339,7 @@ type ISlice[T any] interface {
 // Compile time checks to ensure type satisfies ISlice interface
 var _ ISlice[any] = (*Slice[any])(nil)
 
+// Slice mutex protected slice
 type Slice[V any] struct {
 	Locker[[]V]
 }
@@ -324,6 +348,7 @@ func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
 	return &Slice[V]{m}
 }
 
+// Each iterates each values of the slice
 func (s *Slice[T]) Each(clb func(T)) {
 	s.RWith(func(v []T) {
 		for _, e := range v {
@@ -332,6 +357,7 @@ func (s *Slice[T]) Each(clb func(T)) {
 	})
 }
 
+// Append appends elements at the end of the slice
 func (s *Slice[T]) Append(els ...T) {
 	s.With(func(v *[]T) { *v = append(*v, els...) })
 }
@@ -341,17 +367,19 @@ func (s *Slice[T]) Unshift(el T) {
 	s.With(func(v *[]T) { *v = append([]T{el}, *v...) })
 }
 
-// Shift (pop front)
+// Shift (pop front) remove and return the first element from the slice
 func (s *Slice[T]) Shift() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[0], (*v)[1:] })
 	return
 }
 
+// Pop remove and return the last element from the slice
 func (s *Slice[T]) Pop() (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
 
+// Clone returns a clone of the slice
 func (s *Slice[T]) Clone() (out []T) {
 	s.RWith(func(v []T) {
 		out = make([]T, len(v))
@@ -360,20 +388,24 @@ func (s *Slice[T]) Clone() (out []T) {
 	return
 }
 
+// Len returns the length of the slice
 func (s *Slice[T]) Len() (out int) {
 	s.RWith(func(v []T) { out = len(v) })
 	return
 }
 
+// GetIdx get the element at index i
 func (s *Slice[T]) GetIdx(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
+// DeleteIdx deletes the element at index i
 func (s *Slice[T]) DeleteIdx(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
+// Insert insert a new element at index i
 func (s *Slice[T]) Insert(i int, el T) {
 	s.With(func(v *[]T) {
 		var zero T
