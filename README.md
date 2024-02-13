@@ -66,6 +66,8 @@ func main() {
 It is not unusual in Go to see code like this,  
 where the user has to not forget to use the mutex, and has to not make a mistake with the unlocking mechanism.
 ```go
+// NOTE: This code block is NOT an example on how to use the library!
+
 type Something struct {
     SharedMapMtx sync.RWMutex
     SharedMap    map[string]int
