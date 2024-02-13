@@ -43,7 +43,7 @@ func TestMtx_Debug(t *testing.T) {
 func TestMtx_LockUnlock(t *testing.T) {
 	m := NewMtx("old")
 	m.Lock()
-	val := m.Val()
+	val := m.GetPointer()
 	*val = "new"
 	m.Unlock()
 	assert.Equal(t, "new", m.Load())
@@ -78,11 +78,11 @@ func TestMtx_Replace(t *testing.T) {
 	assert.Equal(t, "new", m.Load())
 }
 
-func TestMtx_Val(t *testing.T) {
+func TestMtx_GetPointer(t *testing.T) {
 	someString := "old"
 	orig := &someString
 	m := NewMtx(orig)
-	val := m.Val()
+	val := m.GetPointer()
 	**val = "new"
 	assert.Equal(t, "new", someString)
 	assert.Equal(t, "new", **val)
@@ -106,7 +106,7 @@ func TestMtx_MarshalJSON(t *testing.T) {
 func TestRWMtx_RLockRUnlock(t *testing.T) {
 	m := NewRWMtx("old")
 	m.RLock()
-	val := m.Val()
+	val := m.GetPointer()
 	assert.Equal(t, "old", *val)
 	m.RUnlock()
 }
@@ -129,7 +129,7 @@ func TestRWMtx_Val(t *testing.T) {
 	someString := "old"
 	orig := &someString
 	m := NewRWMtx(orig)
-	val := m.Val()
+	val := m.GetPointer()
 	**val = "new"
 	assert.Equal(t, "new", **val)
 	assert.Equal(t, "new", *orig)

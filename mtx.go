@@ -37,12 +37,12 @@ func first[T any](a T, _ ...any) T { return a }
 // Locker is the interface that each mtx types implements (Mtx/RWMtx/Map/Slice)
 type Locker[T any] interface {
 	sync.Locker
+	GetPointer() *T
 	Load() T
 	RWith(clb func(v T))
 	RWithE(clb func(v T) error) error
 	Replace(newVal T) (old T)
 	Store(v T)
-	Val() *T
 	With(clb func(v *T))
 	WithE(clb func(v *T) error) error
 }
@@ -71,9 +71,9 @@ func (m *base[M, T]) MarshalJSON() (out []byte, err error) {
 	return
 }
 
-// Val gets the wrapped value by the mutex.
+// GetPointer returns a pointer to the protected value
 // WARNING: the caller must make sure the code that uses it is thread-safe
-func (m *base[M, T]) Val() *T {
+func (m *base[M, T]) GetPointer() *T {
 	return &m.v
 }
 

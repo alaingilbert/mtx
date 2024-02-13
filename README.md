@@ -98,7 +98,7 @@ func someOtherFn(s *Something) {
 func anotherOneFn(s *Something) {
     s.SharedMap.Lock()
     defer s.SharedMap.Unlock()
-    sharedMapPtr := s.SharedMap.Val()
+    sharedMapPtr := s.SharedMap.GetPointer()
     (*sharedMapPtr)["foo"] = 1
 }
 ```
