@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/alaingilbert/mtx.svg)](https://pkg.go.dev/github.com/alaingilbert/mtx)
+
 ### Golang generic mutex helpers
 
 ```go
