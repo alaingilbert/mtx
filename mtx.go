@@ -37,11 +37,11 @@ func first[T any](a T, _ ...any) T { return a }
 // Locker is the interface that each mtx types implements (Mtx/RWMtx/Map/Slice)
 type Locker[T any] interface {
 	sync.Locker
-	Get() T
+	Load() T
 	RWith(clb func(v T))
 	RWithE(clb func(v T) error) error
 	Replace(newVal T) (old T)
-	Set(v T)
+	Store(v T)
 	Val() *T
 	With(clb func(v *T))
 	WithE(clb func(v *T) error) error
@@ -111,13 +111,13 @@ func (m *base[M, T]) RWith(clb func(v T)) {
 }
 
 // Get safely gets the wrapped value
-func (m *base[M, T]) Get() (out T) {
+func (m *base[M, T]) Load() (out T) {
 	m.RWith(func(v T) { out = v })
 	return out
 }
 
 // Set a new value
-func (m *base[M, T]) Set(newV T) {
+func (m *base[M, T]) Store(newV T) {
 	m.With(func(v *T) { *v = newV })
 }
 
@@ -220,7 +220,7 @@ type IMap[K cmp.Ordered, V any] interface {
 	Clone() (out map[K]V)
 	Delete(k K)
 	Each(clb func(K, V))
-	GetKey(k K) (out V, ok bool)
+	Get(k K) (out V, ok bool)
 	GetKeyValue(k K) (key K, value V, ok bool)
 	ContainsKey(k K) (found bool)
 	Keys() (out []K)
@@ -253,8 +253,8 @@ func (m *Map[K, V]) SetKey(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
 }
 
-// GetKey gets a key in from map
-func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
+// Get returns the value corresponding to the key
+func (m *Map[K, V]) Get(k K) (out V, ok bool) {
 	m.RWith(func(mm map[K]V) { out, ok = mm[k] })
 	return
 }

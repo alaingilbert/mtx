@@ -24,7 +24,7 @@ func main() {
         go something.SharedMap.SetKey("a", i)
     }
 
-    fmt.Println(something.SharedMap.GetKey("a"))
+    fmt.Println(something.SharedMap.Get("a"))
 }
 ```
 

@@ -46,7 +46,7 @@ func TestMtx_LockUnlock(t *testing.T) {
 	val := m.Val()
 	*val = "new"
 	m.Unlock()
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestMtx_With(t *testing.T) {
@@ -54,7 +54,7 @@ func TestMtx_With(t *testing.T) {
 	m.With(func(v *string) {
 		*v = "new"
 	})
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestMtx_RWith(t *testing.T) {
@@ -64,18 +64,18 @@ func TestMtx_RWith(t *testing.T) {
 	})
 }
 
-func TestMtx_Set(t *testing.T) {
+func TestMtx_Store(t *testing.T) {
 	m := NewMtx("old")
-	assert.Equal(t, "old", m.Get())
-	m.Set("new")
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "old", m.Load())
+	m.Store("new")
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestMtx_Replace(t *testing.T) {
 	m := NewMtx("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestMtx_Val(t *testing.T) {
@@ -93,7 +93,7 @@ func TestMtxPtr_Replace(t *testing.T) {
 	m := NewMtxPtr("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestMtx_MarshalJSON(t *testing.T) {
@@ -115,14 +115,14 @@ func TestRWMtx_Replace(t *testing.T) {
 	m := NewRWMtx("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestRWMtxPtr_Replace(t *testing.T) {
 	m := NewRWMtxPtr("old")
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
-	assert.Equal(t, "new", m.Get())
+	assert.Equal(t, "new", m.Load())
 }
 
 func TestRWMtx_Val(t *testing.T) {
@@ -135,12 +135,12 @@ func TestRWMtx_Val(t *testing.T) {
 	assert.Equal(t, "new", *orig)
 }
 
-func TestMap_GetKey(t *testing.T) {
+func TestMap_Get(t *testing.T) {
 	m := NewMap[string, int](nil)
-	_, ok := m.GetKey("a")
+	_, ok := m.Get("a")
 	assert.False(t, ok)
 	m.SetKey("a", 1)
-	el, ok := m.GetKey("a")
+	el, ok := m.Get("a")
 	assert.True(t, ok)
 	assert.Equal(t, 1, el)
 }
@@ -194,7 +194,7 @@ func TestMap_Delete(t *testing.T) {
 func TestMap_Values(t *testing.T) {
 	m := NewMap[string, int](nil)
 	assert.Equal(t, []int{}, m.Values())
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	values := m.Values()
 	slices.Sort(values)
 	assert.Equal(t, []int{1, 2, 3}, values)
@@ -203,7 +203,7 @@ func TestMap_Values(t *testing.T) {
 func TestMap_Keys(t *testing.T) {
 	m := NewMapPtr[string, int](nil)
 	assert.Equal(t, []string{}, m.Keys())
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	keys := m.Keys()
 	slices.Sort(keys)
 	assert.Equal(t, []string{"a", "b", "c"}, keys)
@@ -211,7 +211,7 @@ func TestMap_Keys(t *testing.T) {
 
 func TestMap_Each(t *testing.T) {
 	m := NewMap[string, int](nil)
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	arr := make([]string, 0)
 	m.Each(func(k string, v int) {
 		arr = append(arr, fmt.Sprintf("%s_%d", k, v))
@@ -222,17 +222,17 @@ func TestMap_Each(t *testing.T) {
 
 func TestMap_Clone(t *testing.T) {
 	m := NewMap[string, int](nil)
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	clonedMap := m.Clone()
 	assert.Equal(t, 1, clonedMap["a"])
 }
 
-func TestRWMap_GetKey(t *testing.T) {
+func TestRWMap_Get(t *testing.T) {
 	m := NewRWMap[string, int](nil)
-	_, ok := m.GetKey("a")
+	_, ok := m.Get("a")
 	assert.False(t, ok)
 	m.SetKey("a", 1)
-	el, ok := m.GetKey("a")
+	el, ok := m.Get("a")
 	assert.True(t, ok)
 	assert.Equal(t, 1, el)
 }
@@ -275,7 +275,7 @@ func TestRWMap_Delete(t *testing.T) {
 func TestRWMap_Values(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	assert.Equal(t, []int{}, m.Values())
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	values := m.Values()
 	slices.Sort(values)
 	assert.Equal(t, []int{1, 2, 3}, values)
@@ -284,7 +284,7 @@ func TestRWMap_Values(t *testing.T) {
 func TestRWMap_Keys(t *testing.T) {
 	m := NewRWMapPtr[string, int](nil)
 	assert.Equal(t, []string{}, m.Keys())
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	keys := m.Keys()
 	slices.Sort(keys)
 	assert.Equal(t, []string{"a", "b", "c"}, keys)
@@ -292,7 +292,7 @@ func TestRWMap_Keys(t *testing.T) {
 
 func TestRWMap_Each(t *testing.T) {
 	m := NewRWMap[string, int](nil)
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m.Store(map[string]int{"a": 1, "b": 2, "c": 3})
 	arr := make([]string, 0)
 	m.Each(func(k string, v int) {
 		arr = append(arr, fmt.Sprintf("%s_%d", k, v))
@@ -304,18 +304,18 @@ func TestRWMap_Each(t *testing.T) {
 func TestRWMap_InitialValue(t *testing.T) {
 	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
 	assert.Equal(t, 3, m.Len())
-	assert.Equal(t, 2, first(m.GetKey("b")))
+	assert.Equal(t, 2, first(m.Get("b")))
 }
 
-func TestRWMap_Get(t *testing.T) {
+func TestRWMap_Load(t *testing.T) {
 	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
-	theMap := m.Get()
+	theMap := m.Load()
 	m.SetKey("a", 4)
 	assert.Equal(t, 4, theMap["a"])
-	assert.Equal(t, 4, first(m.GetKey("a")))
+	assert.Equal(t, 4, first(m.Get("a")))
 	theMap["a"] = 5
 	assert.Equal(t, 5, theMap["a"])
-	assert.Equal(t, 5, first(m.GetKey("a")))
+	assert.Equal(t, 5, first(m.Get("a")))
 }
 
 func TestRWMap_Clone(t *testing.T) {
@@ -323,7 +323,7 @@ func TestRWMap_Clone(t *testing.T) {
 	clonedMap := m.Clone()
 	m.SetKey("a", 4)
 	assert.Equal(t, 1, clonedMap["a"])
-	assert.Equal(t, 4, first(m.GetKey("a")))
+	assert.Equal(t, 4, first(m.Get("a")))
 }
 
 func TestMap_MarshalJSON(t *testing.T) {
@@ -363,20 +363,20 @@ func TestSlice(t *testing.T) {
 	assert.Equal(t, 0, m.Len())
 	m.Append(1, 2, 3)
 	assert.Equal(t, 3, m.Len())
-	assert.Equal(t, []int{1, 2, 3}, m.Get())
+	assert.Equal(t, []int{1, 2, 3}, m.Load())
 	val2 := m.Shift()
 	assert.Equal(t, 1, val2)
 	m.Unshift(4)
-	assert.Equal(t, []int{4, 2, 3}, m.Get())
+	assert.Equal(t, []int{4, 2, 3}, m.Load())
 	val2 = m.Pop()
-	assert.Equal(t, []int{4, 2}, m.Get())
+	assert.Equal(t, []int{4, 2}, m.Load())
 	m.DeleteIdx(1)
-	assert.Equal(t, []int{4}, m.Get())
+	assert.Equal(t, []int{4}, m.Load())
 	m.Append(5, 6, 7)
-	assert.Equal(t, []int{4, 5, 6, 7}, m.Get())
+	assert.Equal(t, []int{4, 5, 6, 7}, m.Load())
 	assert.Equal(t, 6, m.GetIdx(2))
 	m.Insert(2, 8)
-	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Get())
+	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Load())
 }
 
 func TestRWSlice(t *testing.T) {
@@ -384,30 +384,30 @@ func TestRWSlice(t *testing.T) {
 	assert.Equal(t, 0, m.Len())
 	m.Append(1, 2, 3)
 	assert.Equal(t, 3, m.Len())
-	assert.Equal(t, []int{1, 2, 3}, m.Get())
+	assert.Equal(t, []int{1, 2, 3}, m.Load())
 	val2 := m.Shift()
 	assert.Equal(t, 1, val2)
 	m.Unshift(4)
-	assert.Equal(t, []int{4, 2, 3}, m.Get())
+	assert.Equal(t, []int{4, 2, 3}, m.Load())
 	val2 = m.Pop()
-	assert.Equal(t, []int{4, 2}, m.Get())
+	assert.Equal(t, []int{4, 2}, m.Load())
 	m.DeleteIdx(1)
-	assert.Equal(t, []int{4}, m.Get())
+	assert.Equal(t, []int{4}, m.Load())
 	m.Append(5, 6, 7)
-	assert.Equal(t, []int{4, 5, 6, 7}, m.Get())
+	assert.Equal(t, []int{4, 5, 6, 7}, m.Load())
 	assert.Equal(t, 6, m.GetIdx(2))
 	m.Insert(2, 8)
-	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Get())
+	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Load())
 }
 
 func TestSlice_InitialValue(t *testing.T) {
 	m := NewSlice([]int{1, 2, 3})
-	assert.Equal(t, []int{1, 2, 3}, m.Get())
+	assert.Equal(t, []int{1, 2, 3}, m.Load())
 }
 
 func TestRWSlice_Clone(t *testing.T) {
 	m := NewRWSlice[int](nil)
-	m.Set([]int{1, 2, 3})
+	m.Store([]int{1, 2, 3})
 	clonedSlice := m.Clone()
 	assert.Equal(t, []int{1, 2, 3}, clonedSlice)
 }
@@ -427,7 +427,7 @@ func TestRWSlice_Filter(t *testing.T) {
 	out := m.Filter(func(el int) bool { return el%2 == 0 })
 	assert.Equal(t, 3, len(out))
 	assert.Equal(t, []int{2, 4, 6}, out)
-	assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, m.Get())
+	assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, m.Load())
 }
 
 func TestSlice_MarshalJSON(t *testing.T) {
@@ -449,16 +449,16 @@ func TestSlice_MarshalJSON(t *testing.T) {
 
 func TestRWUInt64(t *testing.T) {
 	m := NewRWUInt64[uint64](0)
-	assert.Equal(t, uint64(0), m.Get())
+	assert.Equal(t, uint64(0), m.Load())
 	m.Add(10)
-	assert.Equal(t, uint64(10), m.Get())
+	assert.Equal(t, uint64(10), m.Load())
 	m.Sub(5)
-	assert.Equal(t, uint64(5), m.Get())
+	assert.Equal(t, uint64(5), m.Load())
 
 	mp := NewRWUInt64Ptr[uint64](0)
-	assert.Equal(t, uint64(0), mp.Get())
+	assert.Equal(t, uint64(0), mp.Load())
 	mp.Add(10)
-	assert.Equal(t, uint64(10), mp.Get())
+	assert.Equal(t, uint64(10), mp.Load())
 	mp.Sub(5)
-	assert.Equal(t, uint64(5), mp.Get())
+	assert.Equal(t, uint64(5), mp.Load())
 }
