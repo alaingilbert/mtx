@@ -485,22 +485,30 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 
 //----------------------
 
-type RWUInt64[T ~uint64] struct {
-	*RWMtx[T]
+type Number[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~float32 | ~float64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64] struct {
+	Locker[T]
 }
 
-func NewRWUInt64[T ~uint64](v T) RWUInt64[T] {
-	return RWUInt64[T]{NewRWMtxPtr[T](v)}
+func NewNumber[T ~uint64](v T) Number[T] {
+	return Number[T]{NewMtxPtr[T](v)}
 }
 
-func NewRWUInt64Ptr[T ~uint64](v T) *RWUInt64[T] {
-	return &RWUInt64[T]{NewRWMtxPtr[T](v)}
+func NewNumberPtr[T ~uint64](v T) *Number[T] {
+	return toPtr(NewNumber(v))
 }
 
-func (s *RWUInt64[T]) Add(diff T) {
-	s.With(func(v *T) { *v += diff })
+func NewRWNumber[T ~uint64](v T) Number[T] {
+	return Number[T]{NewRWMtxPtr[T](v)}
 }
 
-func (s *RWUInt64[T]) Sub(diff T) {
-	s.With(func(v *T) { *v -= diff })
+func NewRWNumberPtr[T ~uint64](v T) *Number[T] {
+	return toPtr(NewRWNumber(v))
+}
+
+func (n *Number[T]) Add(diff T) {
+	n.With(func(v *T) { *v += diff })
+}
+
+func (n *Number[T]) Sub(diff T) {
+	n.With(func(v *T) { *v -= diff })
 }

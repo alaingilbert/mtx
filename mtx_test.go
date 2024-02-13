@@ -448,17 +448,31 @@ func TestSlice_MarshalJSON(t *testing.T) {
 }
 
 func TestRWUInt64(t *testing.T) {
-	m := NewRWUInt64[uint64](0)
-	assert.Equal(t, uint64(0), m.Load())
-	m.Add(10)
-	assert.Equal(t, uint64(10), m.Load())
-	m.Sub(5)
-	assert.Equal(t, uint64(5), m.Load())
+	n1 := NewNumber(uint64(0))
+	assert.Equal(t, uint64(0), n1.Load())
+	n1.Add(10)
+	assert.Equal(t, uint64(10), n1.Load())
+	n1.Sub(5)
+	assert.Equal(t, uint64(5), n1.Load())
 
-	mp := NewRWUInt64Ptr[uint64](0)
-	assert.Equal(t, uint64(0), mp.Load())
-	mp.Add(10)
-	assert.Equal(t, uint64(10), mp.Load())
-	mp.Sub(5)
-	assert.Equal(t, uint64(5), mp.Load())
+	n2 := NewNumberPtr(uint64(0))
+	assert.Equal(t, uint64(0), n2.Load())
+	n2.Add(10)
+	assert.Equal(t, uint64(10), n2.Load())
+	n2.Sub(5)
+	assert.Equal(t, uint64(5), n2.Load())
+
+	n3 := NewRWNumberPtr(uint64(0))
+	assert.Equal(t, uint64(0), n3.Load())
+	n3.Add(10)
+	assert.Equal(t, uint64(10), n3.Load())
+	n3.Sub(5)
+	assert.Equal(t, uint64(5), n3.Load())
+
+	n4 := NewRWNumber(uint64(0))
+	assert.Equal(t, uint64(0), n4.Load())
+	n4.Add(10)
+	assert.Equal(t, uint64(10), n4.Load())
+	n4.Sub(5)
+	assert.Equal(t, uint64(5), n4.Load())
 }
