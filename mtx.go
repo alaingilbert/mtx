@@ -9,6 +9,7 @@ var debug = false
 
 func toPtr[T any](v T) *T { return &v }
 
+// Locker is the interface that each mtx types implements (Mtx/RWMtx/Map/Slice)
 type Locker[T any] interface {
 	sync.Locker
 	Get() T
