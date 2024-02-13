@@ -23,7 +23,7 @@ func main() {
     }
 
     for i := 0; i < 100; i++ {
-        go something.SharedMap.SetKey("a", i)
+        go something.SharedMap.Insert("a", i)
     }
 
     fmt.Println(something.SharedMap.Get("a"))
@@ -88,7 +88,7 @@ type Something struct {
 
 // This is the recommended way of setting a key
 func someFn(s *Something) {
-    s.SharedMap.SetKey("foo", 1)
+    s.SharedMap.Insert("foo", 1)
 }
 
 // This is also good
