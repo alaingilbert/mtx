@@ -485,27 +485,30 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 
 //----------------------
 
-type Number[T ~uintptr |
-	~int | ~int8 | ~int16 | ~int32 | ~int64 |
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+type INumber interface {
 	~float32 | ~float64 |
-	~complex64 | ~complex128] struct {
+		~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+		~complex64 | ~complex128
+}
+
+type Number[T INumber] struct {
 	Locker[T]
 }
 
-func NewNumber[T ~uint64](v T) Number[T] {
+func NewNumber[T INumber](v T) Number[T] {
 	return Number[T]{NewMtxPtr[T](v)}
 }
 
-func NewNumberPtr[T ~uint64](v T) *Number[T] {
+func NewNumberPtr[T INumber](v T) *Number[T] {
 	return toPtr(NewNumber(v))
 }
 
-func NewRWNumber[T ~uint64](v T) Number[T] {
+func NewRWNumber[T INumber](v T) Number[T] {
 	return Number[T]{NewRWMtxPtr[T](v)}
 }
 
-func NewRWNumberPtr[T ~uint64](v T) *Number[T] {
+func NewRWNumberPtr[T INumber](v T) *Number[T] {
 	return toPtr(NewRWNumber(v))
 }
 
