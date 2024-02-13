@@ -274,8 +274,7 @@ func TestRWMap_Each(t *testing.T) {
 func TestRWMap_InitialValue(t *testing.T) {
 	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
 	assert.Equal(t, 3, m.Len())
-	val, _ := m.GetKey("b")
-	assert.Equal(t, 2, val)
+	assert.Equal(t, 2, first(m.GetKey("b")))
 }
 
 func TestRWMap_Clone(t *testing.T) {
