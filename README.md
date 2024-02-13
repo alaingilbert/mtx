@@ -87,8 +87,15 @@ func someFn(s *Something) {
     s.SharedMap.SetKey("foo", 1)
 }
 
-// But it can be as flexible as needed
+// This is also good
 func someOtherFn(s *Something) {
+    s.SharedMap.With(func(sharedMap *map[string]int) {
+        (*sharedMap)["foo"] = 1
+    })
+}
+
+// But it can be as flexible as needed
+func anotherOneFn(s *Something) {
     s.SharedMap.Lock()
     defer s.SharedMap.Unlock()
     sharedMapPtr := s.SharedMap.Val()
