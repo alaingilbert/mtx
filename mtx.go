@@ -339,6 +339,7 @@ type ISlice[T any] interface {
 	Clone() (out []T)
 	DeleteIdx(i int)
 	Each(clb func(T))
+	Filter(func(T) bool) []T
 	GetIdx(i int) (out T)
 	Insert(i int, el T)
 	Len() (out int)
