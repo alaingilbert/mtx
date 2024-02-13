@@ -277,11 +277,23 @@ func TestRWMap_InitialValue(t *testing.T) {
 	assert.Equal(t, 2, first(m.GetKey("b")))
 }
 
+func TestRWMap_Get(t *testing.T) {
+	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
+	theMap := m.Get()
+	m.SetKey("a", 4)
+	assert.Equal(t, 4, theMap["a"])
+	assert.Equal(t, 4, first(m.GetKey("a")))
+	theMap["a"] = 5
+	assert.Equal(t, 5, theMap["a"])
+	assert.Equal(t, 5, first(m.GetKey("a")))
+}
+
 func TestRWMap_Clone(t *testing.T) {
-	m := NewRWMap[string, int](nil)
-	m.Set(map[string]int{"a": 1, "b": 2, "c": 3})
+	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
 	clonedMap := m.Clone()
+	m.SetKey("a", 4)
 	assert.Equal(t, 1, clonedMap["a"])
+	assert.Equal(t, 4, first(m.GetKey("a")))
 }
 
 func TestSlice(t *testing.T) {
