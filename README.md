@@ -57,5 +57,42 @@ func main() {
 	}
 	fmt.Println(something)
 }
+```
 
+## Goal
+
+It is not unusual in Go to see code like this,  
+where the user has to not forget to use the mutex, and has to not make a mistake with the unlocking mechanism.
+```go
+type Something struct {
+    SharedMapMtx sync.RWMutex
+    SharedMap    map[string]int
+}
+
+func someFn(s Something) {
+	s.SharedMapMtx.Lock()
+	defer s.SharedMapMtx.Unlock()
+	s.SharedMap["foo"] = 1
+}
+```
+
+This library ensure that a field which is protected by a mutex will be used properly without compromising on flexibility.
+```go
+type Something struct {
+    SharedMapMtx sync.RWMutex
+    SharedMap    mtx.Map[string, int]
+}
+
+// This is the recommended way of setting a key
+func someFn(s Something) {
+	s.SharedMap.SetKey("foo", 1)
+}
+
+// But it can be as flexible as needed
+func someOtherFn(s Something) {
+    s.SharedMapMtx.Lock()
+    defer s.SharedMapMtx.Unlock()
+    val := s.SharedMap.Val()
+	*val = 1
+}
 ```
