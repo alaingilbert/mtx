@@ -195,7 +195,7 @@ type IMap[K cmp.Ordered, V any] interface {
 	Keys() (out []K)
 	Len() (out int)
 	SetKey(k K, v V)
-	TakeKey(k K) (out V, ok bool)
+	Take(k K) (out V, ok bool)
 	Values() (out []V)
 }
 
@@ -237,8 +237,8 @@ func (m *Map[K, V]) ContainsKey(k K) (found bool) {
 	return
 }
 
-// TakeKey if the key exists, its value is returned to the caller and the key deleted from the map
-func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
+// Take if the key exists, its value is returned to the caller and the key deleted from the map
+func (m *Map[K, V]) Take(k K) (out V, ok bool) {
 	m.With(func(m *map[K]V) {
 		out, ok = (*m)[k]
 		if ok {

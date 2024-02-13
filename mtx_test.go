@@ -139,18 +139,18 @@ func TestMap_HasKey(t *testing.T) {
 	assert.False(t, m.ContainsKey("a"))
 }
 
-func TestMap_TakeKey(t *testing.T) {
+func TestMap_Take(t *testing.T) {
 	m := NewMap[string, int](nil)
 	m.SetKey("a", 1)
 	m.SetKey("b", 2)
 	m.SetKey("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
-	val, ok := m.TakeKey("b")
+	val, ok := m.Take("b")
 	assert.True(t, ok)
 	assert.Equal(t, 2, val)
 	assert.False(t, m.ContainsKey("b"))
-	_, ok = m.TakeKey("b")
+	_, ok = m.Take("b")
 	assert.False(t, ok)
 	assert.Equal(t, 2, m.Len())
 }
@@ -220,18 +220,18 @@ func TestRWMap_HasKey(t *testing.T) {
 	assert.False(t, m.ContainsKey("a"))
 }
 
-func TestRWMap_TakeKey(t *testing.T) {
+func TestRWMap_Take(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	m.SetKey("a", 1)
 	m.SetKey("b", 2)
 	m.SetKey("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
-	val, ok := m.TakeKey("b")
+	val, ok := m.Take("b")
 	assert.True(t, ok)
 	assert.Equal(t, 2, val)
 	assert.False(t, m.ContainsKey("b"))
-	_, ok = m.TakeKey("b")
+	_, ok = m.Take("b")
 	assert.False(t, ok)
 	assert.Equal(t, 2, m.Len())
 }
