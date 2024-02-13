@@ -338,6 +338,7 @@ func TestMap_Clear(t *testing.T) {
 	assert.False(t, m.IsEmpty())
 	m.Clear()
 	assert.True(t, m.IsEmpty())
+	assert.Equal(t, map[string]int{}, m.Load())
 }
 
 func TestMap_MarshalJSON(t *testing.T) {
