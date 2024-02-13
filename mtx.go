@@ -187,9 +187,10 @@ func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewR
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
 	Clone() (out map[K]V)
-	DeleteKey(k K)
+	Delete(k K)
 	Each(clb func(K, V))
 	GetKey(k K) (out V, ok bool)
+	GetKeyValue(k K) (key K, value V, ok bool)
 	ContainsKey(k K) (found bool)
 	Keys() (out []K)
 	Len() (out int)
@@ -247,8 +248,8 @@ func (m *Map[K, V]) TakeKey(k K) (out V, ok bool) {
 	return
 }
 
-// DeleteKey deletes a key from the map
-func (m *Map[K, V]) DeleteKey(k K) {
+// Delete deletes a key from the map
+func (m *Map[K, V]) Delete(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
