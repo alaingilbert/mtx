@@ -83,12 +83,12 @@ type Something struct {
 }
 
 // This is the recommended way of setting a key
-func someFn(s Something) {
+func someFn(s *Something) {
     s.SharedMap.SetKey("foo", 1)
 }
 
 // But it can be as flexible as needed
-func someOtherFn(s Something) {
+func someOtherFn(s *Something) {
     s.SharedMap.Lock()
     defer s.SharedMap.Unlock()
     sharedMapPtr := s.SharedMap.Val()
