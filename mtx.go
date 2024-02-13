@@ -220,7 +220,7 @@ func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewR
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
 	Clone() (out map[K]V)
-	Remove(k K)
+	Delete(k K)
 	Each(clb func(K, V))
 	Get(k K) (out V, ok bool)
 	GetKeyValue(k K) (key K, value V, ok bool)
@@ -228,7 +228,7 @@ type IMap[K cmp.Ordered, V any] interface {
 	Keys() (out []K)
 	Len() (out int)
 	SetKey(k K, v V)
-	Take(k K) (out V, ok bool)
+	Remove(k K) (out V, ok bool)
 	Values() (out []V)
 }
 
@@ -276,8 +276,8 @@ func (m *Map[K, V]) ContainsKey(k K) (found bool) {
 	return
 }
 
-// Take if the key exists, its value is returned to the caller and the key deleted from the map
-func (m *Map[K, V]) Take(k K) (out V, ok bool) {
+// Remove if the key exists, its value is returned to the caller and the key deleted from the map
+func (m *Map[K, V]) Remove(k K) (out V, ok bool) {
 	m.With(func(m *map[K]V) {
 		out, ok = (*m)[k]
 		if ok {
@@ -287,8 +287,8 @@ func (m *Map[K, V]) Take(k K) (out V, ok bool) {
 	return
 }
 
-// Remove removes a key from the map
-func (m *Map[K, V]) Remove(k K) {
+// Delete deletes a key from the map
+func (m *Map[K, V]) Delete(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
@@ -376,7 +376,7 @@ type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
 	Clone() (out []T)
-	Remove(i int)
+	Remove(i int) (out T)
 	Each(clb func(T))
 	Filter(func(T) bool) []T
 	Get(i int) (out T)
@@ -459,8 +459,9 @@ func (s *Slice[T]) Get(i int) (out T) {
 
 // Remove removes the element at position i within the slice,
 // shifting all elements after it to the left
-func (s *Slice[T]) Remove(i int) {
-	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
+func (s *Slice[T]) Remove(i int) (out T) {
+	s.With(func(v *[]T) { out, *v = (*v)[i], (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
+	return
 }
 
 // Insert insert a new element at index i

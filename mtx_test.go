@@ -161,33 +161,33 @@ func TestMap_HasKey(t *testing.T) {
 	assert.False(t, m.ContainsKey("a"))
 	m.SetKey("a", 1)
 	assert.True(t, m.ContainsKey("a"))
-	m.Remove("a")
+	m.Delete("a")
 	assert.False(t, m.ContainsKey("a"))
 }
 
-func TestMap_Take(t *testing.T) {
+func TestMap_Remove(t *testing.T) {
 	m := NewMap[string, int](nil)
 	m.SetKey("a", 1)
 	m.SetKey("b", 2)
 	m.SetKey("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
-	val, ok := m.Take("b")
+	val, ok := m.Remove("b")
 	assert.True(t, ok)
 	assert.Equal(t, 2, val)
 	assert.False(t, m.ContainsKey("b"))
-	_, ok = m.Take("b")
+	_, ok = m.Remove("b")
 	assert.False(t, ok)
 	assert.Equal(t, 2, m.Len())
 }
 
-func TestMap_Remove(t *testing.T) {
+func TestMap_Delete(t *testing.T) {
 	m := NewMap[string, int](nil)
 	assert.Equal(t, 0, m.Len())
-	m.Remove("a")
+	m.Delete("a")
 	m.SetKey("a", 1)
 	assert.Equal(t, 1, m.Len())
-	m.Remove("a")
+	m.Delete("a")
 	assert.Equal(t, 0, m.Len())
 }
 
@@ -242,33 +242,33 @@ func TestRWMap_HasKey(t *testing.T) {
 	assert.False(t, m.ContainsKey("a"))
 	m.SetKey("a", 1)
 	assert.True(t, m.ContainsKey("a"))
-	m.Remove("a")
+	m.Delete("a")
 	assert.False(t, m.ContainsKey("a"))
 }
 
-func TestRWMap_Take(t *testing.T) {
+func TestRWMap_Remove(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	m.SetKey("a", 1)
 	m.SetKey("b", 2)
 	m.SetKey("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
-	val, ok := m.Take("b")
+	val, ok := m.Remove("b")
 	assert.True(t, ok)
 	assert.Equal(t, 2, val)
 	assert.False(t, m.ContainsKey("b"))
-	_, ok = m.Take("b")
+	_, ok = m.Remove("b")
 	assert.False(t, ok)
 	assert.Equal(t, 2, m.Len())
 }
 
-func TestRWMap_Remove(t *testing.T) {
+func TestRWMap_Delete(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	assert.Equal(t, 0, m.Len())
-	m.Remove("a")
+	m.Delete("a")
 	m.SetKey("a", 1)
 	assert.Equal(t, 1, m.Len())
-	m.Remove("a")
+	m.Delete("a")
 	assert.Equal(t, 0, m.Len())
 }
 
@@ -370,8 +370,9 @@ func TestSlice(t *testing.T) {
 	assert.Equal(t, []int{4, 2, 3}, m.Load())
 	val2 = m.Pop()
 	assert.Equal(t, []int{4, 2}, m.Load())
-	m.Remove(1)
+	assert.Equal(t, 2, m.Remove(1))
 	assert.Equal(t, []int{4}, m.Load())
+	assert.Panics(t, func() { m.Remove(1) })
 	m.Append(5, 6, 7)
 	assert.Equal(t, []int{4, 5, 6, 7}, m.Load())
 	assert.Equal(t, 6, m.Get(2))
