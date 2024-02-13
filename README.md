@@ -16,7 +16,7 @@ func main() {
     }
 
     something := Something{
-        Field1:    "This memory is not being shared, no mutex needed",
+        Field1:    "this memory is not being shared, no mutex needed on Field1",
         SharedMap: mtx.NewRWMap[string, int](nil),
     }
 
