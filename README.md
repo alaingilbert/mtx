@@ -79,7 +79,6 @@ func someFn(s Something) {
 This library ensure that a field which is protected by a mutex will be used properly without compromising on flexibility.
 ```go
 type Something struct {
-    SharedMapMtx sync.RWMutex
     SharedMap    mtx.Map[string, int]
 }
 
@@ -90,8 +89,8 @@ func someFn(s Something) {
 
 // But it can be as flexible as needed
 func someOtherFn(s Something) {
-    s.SharedMapMtx.Lock()
-    defer s.SharedMapMtx.Unlock()
+    s.SharedMap.Lock()
+    defer s.SharedMap.Unlock()
     sharedMapPtr := s.SharedMap.Val()
     (*sharedMapPtr)["foo"] = 1
 }
