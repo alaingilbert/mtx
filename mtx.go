@@ -429,7 +429,7 @@ func (s *Slice[T]) Each(clb func(T)) {
 	})
 }
 
-// Clear clears the vector, removing all values
+// Clear clears the slice, removing all values
 func (s *Slice[T]) Clear() {
 	s.With(func(v *[]T) { *v = nil; *v = make([]T, 0) })
 }
