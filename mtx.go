@@ -41,8 +41,8 @@ type Locker[T any] interface {
 	Load() T
 	RWith(clb func(v T))
 	RWithE(clb func(v T) error) error
-	Replace(newVal T) (old T)
 	Store(v T)
+	Swap(newVal T) (old T)
 	With(clb func(v *T))
 	WithE(clb func(v *T) error) error
 }
@@ -124,7 +124,7 @@ func (m *base[M, T]) Store(newV T) {
 }
 
 // Replace set a new value and return the old value
-func (m *base[M, T]) Replace(newVal T) (old T) {
+func (m *base[M, T]) Swap(newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
 		*v = newVal

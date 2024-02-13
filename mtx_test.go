@@ -71,9 +71,9 @@ func TestMtx_Store(t *testing.T) {
 	assert.Equal(t, "new", m.Load())
 }
 
-func TestMtx_Replace(t *testing.T) {
+func TestMtx_Swap(t *testing.T) {
 	m := NewMtx("old")
-	old := m.Replace("new")
+	old := m.Swap("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Load())
 }
@@ -89,9 +89,9 @@ func TestMtx_GetPointer(t *testing.T) {
 	assert.Equal(t, "new", *orig)
 }
 
-func TestMtxPtr_Replace(t *testing.T) {
+func TestMtxPtr_Swap(t *testing.T) {
 	m := NewMtxPtr("old")
-	old := m.Replace("new")
+	old := m.Swap("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Load())
 }
@@ -111,16 +111,16 @@ func TestRWMtx_RLockRUnlock(t *testing.T) {
 	m.RUnlock()
 }
 
-func TestRWMtx_Replace(t *testing.T) {
+func TestRWMtx_Swap(t *testing.T) {
 	m := NewRWMtx("old")
-	old := m.Replace("new")
+	old := m.Swap("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Load())
 }
 
-func TestRWMtxPtr_Replace(t *testing.T) {
+func TestRWMtxPtr_Swap(t *testing.T) {
 	m := NewRWMtxPtr("old")
-	old := m.Replace("new")
+	old := m.Swap("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Load())
 }
