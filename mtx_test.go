@@ -139,7 +139,7 @@ func TestMap_Get(t *testing.T) {
 	m := NewMap[string, int](nil)
 	_, ok := m.Get("a")
 	assert.False(t, ok)
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	el, ok := m.Get("a")
 	assert.True(t, ok)
 	assert.Equal(t, 1, el)
@@ -149,7 +149,7 @@ func TestMap_GetKeyValue(t *testing.T) {
 	m := NewMap[string, int](nil)
 	_, _, ok := m.GetKeyValue("a")
 	assert.False(t, ok)
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	key, value, ok := m.GetKeyValue("a")
 	assert.True(t, ok)
 	assert.Equal(t, "a", key)
@@ -159,7 +159,7 @@ func TestMap_GetKeyValue(t *testing.T) {
 func TestMap_HasKey(t *testing.T) {
 	m := NewMap[string, int](nil)
 	assert.False(t, m.ContainsKey("a"))
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	assert.True(t, m.ContainsKey("a"))
 	m.Delete("a")
 	assert.False(t, m.ContainsKey("a"))
@@ -167,9 +167,9 @@ func TestMap_HasKey(t *testing.T) {
 
 func TestMap_Remove(t *testing.T) {
 	m := NewMap[string, int](nil)
-	m.SetKey("a", 1)
-	m.SetKey("b", 2)
-	m.SetKey("c", 3)
+	m.Insert("a", 1)
+	m.Insert("b", 2)
+	m.Insert("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
 	val, ok := m.Remove("b")
@@ -185,7 +185,7 @@ func TestMap_Delete(t *testing.T) {
 	m := NewMap[string, int](nil)
 	assert.Equal(t, 0, m.Len())
 	m.Delete("a")
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	assert.Equal(t, 1, m.Len())
 	m.Delete("a")
 	assert.Equal(t, 0, m.Len())
@@ -231,7 +231,7 @@ func TestRWMap_Get(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	_, ok := m.Get("a")
 	assert.False(t, ok)
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	el, ok := m.Get("a")
 	assert.True(t, ok)
 	assert.Equal(t, 1, el)
@@ -240,7 +240,7 @@ func TestRWMap_Get(t *testing.T) {
 func TestRWMap_HasKey(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	assert.False(t, m.ContainsKey("a"))
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	assert.True(t, m.ContainsKey("a"))
 	m.Delete("a")
 	assert.False(t, m.ContainsKey("a"))
@@ -248,9 +248,9 @@ func TestRWMap_HasKey(t *testing.T) {
 
 func TestRWMap_Remove(t *testing.T) {
 	m := NewRWMap[string, int](nil)
-	m.SetKey("a", 1)
-	m.SetKey("b", 2)
-	m.SetKey("c", 3)
+	m.Insert("a", 1)
+	m.Insert("b", 2)
+	m.Insert("c", 3)
 	assert.Equal(t, 3, m.Len())
 	assert.True(t, m.ContainsKey("b"))
 	val, ok := m.Remove("b")
@@ -266,7 +266,7 @@ func TestRWMap_Delete(t *testing.T) {
 	m := NewRWMap[string, int](nil)
 	assert.Equal(t, 0, m.Len())
 	m.Delete("a")
-	m.SetKey("a", 1)
+	m.Insert("a", 1)
 	assert.Equal(t, 1, m.Len())
 	m.Delete("a")
 	assert.Equal(t, 0, m.Len())
@@ -310,7 +310,7 @@ func TestRWMap_InitialValue(t *testing.T) {
 func TestRWMap_Load(t *testing.T) {
 	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
 	theMap := m.Load()
-	m.SetKey("a", 4)
+	m.Insert("a", 4)
 	assert.Equal(t, 4, theMap["a"])
 	assert.Equal(t, 4, first(m.Get("a")))
 	theMap["a"] = 5
@@ -321,7 +321,7 @@ func TestRWMap_Load(t *testing.T) {
 func TestRWMap_Clone(t *testing.T) {
 	m := NewRWMap(map[string]int{"a": 1, "b": 2, "c": 3})
 	clonedMap := m.Clone()
-	m.SetKey("a", 4)
+	m.Insert("a", 4)
 	assert.Equal(t, 1, clonedMap["a"])
 	assert.Equal(t, 4, first(m.Get("a")))
 }

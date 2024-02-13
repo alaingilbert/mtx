@@ -220,14 +220,14 @@ func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewR
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
 	Clone() (out map[K]V)
+	ContainsKey(k K) (found bool)
 	Delete(k K)
 	Each(clb func(K, V))
 	Get(k K) (out V, ok bool)
 	GetKeyValue(k K) (key K, value V, ok bool)
-	ContainsKey(k K) (found bool)
+	Insert(k K, v V)
 	Keys() (out []K)
 	Len() (out int)
-	SetKey(k K, v V)
 	Remove(k K) (out V, ok bool)
 	Values() (out []V)
 }
@@ -250,8 +250,8 @@ func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
 	return
 }
 
-// SetKey sets a key in the map
-func (m *Map[K, V]) SetKey(k K, v V) {
+// Insert inserts a key/value in the map
+func (m *Map[K, V]) Insert(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
 }
 
