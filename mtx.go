@@ -190,7 +190,7 @@ type IMap[K cmp.Ordered, V any] interface {
 	DeleteKey(k K)
 	Each(clb func(K, V))
 	GetKey(k K) (out V, ok bool)
-	HasKey(k K) (found bool)
+	ContainsKey(k K) (found bool)
 	Keys() (out []K)
 	Len() (out int)
 	SetKey(k K, v V)
@@ -221,8 +221,17 @@ func (m *Map[K, V]) GetKey(k K) (out V, ok bool) {
 	return
 }
 
-// HasKey returns either or not the map contains the key
-func (m *Map[K, V]) HasKey(k K) (found bool) {
+// GetKeyValue returns the key-value pair corresponding to the supplied key.
+func (m *Map[K, V]) GetKeyValue(k K) (key K, value V, ok bool) {
+	m.RWith(func(mm map[K]V) { value, ok = mm[k] })
+	if ok {
+		return k, value, true
+	}
+	return
+}
+
+// ContainsKey returns true if the map contains a value for the specified key
+func (m *Map[K, V]) ContainsKey(k K) (found bool) {
 	m.RWith(func(mm map[K]V) { _, found = mm[k] })
 	return
 }
