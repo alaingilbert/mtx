@@ -85,7 +85,7 @@ type Something struct {
 
 // This is the recommended way of setting a key
 func someFn(s Something) {
-	s.SharedMap.SetKey("foo", 1)
+    s.SharedMap.SetKey("foo", 1)
 }
 
 // But it can be as flexible as needed
