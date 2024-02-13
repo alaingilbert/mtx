@@ -336,14 +336,14 @@ func TestRWSlice_Each(t *testing.T) {
 }
 
 func TestRWUInt64(t *testing.T) {
-	m := NewRWUInt64[uint64]()
+	m := NewRWUInt64[uint64](0)
 	assert.Equal(t, uint64(0), m.Get())
 	m.Incr(10)
 	assert.Equal(t, uint64(10), m.Get())
 	m.Decr(5)
 	assert.Equal(t, uint64(5), m.Get())
 
-	mp := NewRWUInt64Ptr[uint64]()
+	mp := NewRWUInt64Ptr[uint64](0)
 	assert.Equal(t, uint64(0), mp.Get())
 	mp.Incr(10)
 	assert.Equal(t, uint64(10), mp.Get())

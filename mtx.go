@@ -422,12 +422,12 @@ type RWUInt64[T ~uint64] struct {
 	*RWMtx[T]
 }
 
-func NewRWUInt64[T ~uint64]() RWUInt64[T] {
-	return RWUInt64[T]{NewRWMtxPtr[T](0)}
+func NewRWUInt64[T ~uint64](v T) RWUInt64[T] {
+	return RWUInt64[T]{NewRWMtxPtr[T](v)}
 }
 
-func NewRWUInt64Ptr[T ~uint64]() *RWUInt64[T] {
-	return &RWUInt64[T]{NewRWMtxPtr[T](0)}
+func NewRWUInt64Ptr[T ~uint64](v T) *RWUInt64[T] {
+	return &RWUInt64[T]{NewRWMtxPtr[T](v)}
 }
 
 func (s *RWUInt64[T]) Incr(diff T) {
