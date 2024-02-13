@@ -9,7 +9,7 @@ var debug = false
 
 func toPtr[T any](v T) *T { return &v }
 
-func first[T any](a T, args ...any) T { return a }
+func first[T any](a T, _ ...any) T { return a }
 
 // Locker is the interface that each mtx types implements (Mtx/RWMtx/Map/Slice)
 type Locker[T any] interface {
