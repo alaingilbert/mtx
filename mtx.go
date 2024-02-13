@@ -220,7 +220,7 @@ func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewR
 type IMap[K cmp.Ordered, V any] interface {
 	Locker[map[K]V]
 	Clone() (out map[K]V)
-	Delete(k K)
+	Remove(k K)
 	Each(clb func(K, V))
 	Get(k K) (out V, ok bool)
 	GetKeyValue(k K) (key K, value V, ok bool)
@@ -287,8 +287,8 @@ func (m *Map[K, V]) Take(k K) (out V, ok bool) {
 	return
 }
 
-// Delete deletes a key from the map
-func (m *Map[K, V]) Delete(k K) {
+// Remove removes a key from the map
+func (m *Map[K, V]) Remove(k K) {
 	m.With(func(m *map[K]V) { delete(*m, k) })
 	return
 }
@@ -376,7 +376,7 @@ type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
 	Clone() (out []T)
-	Delete(i int)
+	Remove(i int)
 	Each(clb func(T))
 	Filter(func(T) bool) []T
 	Get(i int) (out T)
@@ -451,14 +451,15 @@ func (s *Slice[T]) Len() (out int) {
 	return
 }
 
-// GetIdx get the element at index i
+// Get gets the element at index i
 func (s *Slice[T]) Get(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
-// DeleteIdx deletes the element at index i
-func (s *Slice[T]) Delete(i int) {
+// Remove removes the element at position i within the slice,
+// shifting all elements after it to the left
+func (s *Slice[T]) Remove(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
