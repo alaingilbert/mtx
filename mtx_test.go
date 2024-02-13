@@ -26,23 +26,19 @@ func TestMtx_LockUnlock(t *testing.T) {
 	assert.Equal(t, "new", m.Get())
 }
 
-func TestMtx_WithE(t *testing.T) {
+func TestMtx_With(t *testing.T) {
 	m := NewMtx("old")
-	err := m.WithE(func(v *string) error {
+	m.With(func(v *string) {
 		*v = "new"
-		return nil
 	})
-	assert.NoError(t, err)
 	assert.Equal(t, "new", m.Get())
 }
 
-func TestMtx_RWithE(t *testing.T) {
+func TestMtx_RWith(t *testing.T) {
 	m := NewMtx("old")
-	err := m.RWithE(func(v string) error {
+	m.RWith(func(v string) {
 		assert.Equal(t, "old", v)
-		return nil
 	})
-	assert.NoError(t, err)
 }
 
 func TestMtx_Set(t *testing.T) {
