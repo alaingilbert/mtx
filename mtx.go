@@ -426,6 +426,19 @@ func (s *Slice[T]) Insert(i int, el T) {
 	})
 }
 
+// Filter ...
+func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
+	s.With(func(v *[]T) {
+		out = make([]T, 0)
+		for _, x := range *v {
+			if keep(x) {
+				out = append(out, x)
+			}
+		}
+	})
+	return
+}
+
 //----------------------
 
 type RWUInt64[T ~uint64] struct {

@@ -353,6 +353,14 @@ func TestRWSlice_Each(t *testing.T) {
 	assert.Equal(t, []string{"E1", "E2", "E3"}, arr)
 }
 
+func TestRWSlice_Filter(t *testing.T) {
+	m := NewRWSlicePtr([]int{1, 2, 3, 4, 5, 6})
+	out := m.Filter(func(el int) bool { return el%2 == 0 })
+	assert.Equal(t, 3, len(out))
+	assert.Equal(t, []int{2, 4, 6}, out)
+	assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, m.Get())
+}
+
 func TestRWUInt64(t *testing.T) {
 	m := NewRWUInt64[uint64](0)
 	assert.Equal(t, uint64(0), m.Get())
