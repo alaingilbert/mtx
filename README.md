@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	// go run -race main.go
 	type Something struct {
 		Field1    string
 		SharedMap mtx.Map[string, int]
@@ -26,9 +27,7 @@ func main() {
 	}
 
 	for i := 0; i < 100; i++ {
-		go func(i int) {
-			something.SharedMap.SetKey("a", i)
-		}(i)
+		go something.SharedMap.SetKey("a", i)
 	}
 
 	fmt.Println(something.SharedMap.GetKey("a"))
