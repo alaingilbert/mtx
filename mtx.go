@@ -110,13 +110,13 @@ func (m *base[M, T]) RWith(clb func(v T)) {
 	})
 }
 
-// Get safely gets the wrapped value
+// Load safely gets the wrapped value
 func (m *base[M, T]) Load() (out T) {
 	m.RWith(func(v T) { out = v })
 	return out
 }
 
-// Set a new value
+// Store a new value
 func (m *base[M, T]) Store(newV T) {
 	m.With(func(v *T) { *v = newV })
 }
