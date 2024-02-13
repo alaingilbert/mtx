@@ -313,6 +313,11 @@ func TestRWSlice(t *testing.T) {
 	assert.Equal(t, []int{4, 5, 8, 6, 7}, m.Get())
 }
 
+func TestSlice_InitialValue(t *testing.T) {
+	m := NewSlice[int]([]int{1, 2, 3})
+	assert.Equal(t, []int{1, 2, 3}, m.Get())
+}
+
 func TestRWSlice_Clone(t *testing.T) {
 	m := NewRWSlice[int](nil)
 	m.Set([]int{1, 2, 3})
