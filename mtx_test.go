@@ -1,6 +1,7 @@
 package mtx
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"slices"
@@ -71,6 +72,13 @@ func TestMtxPtr_Replace(t *testing.T) {
 	old := m.Replace("new")
 	assert.Equal(t, "old", old)
 	assert.Equal(t, "new", m.Get())
+}
+
+func TestMtx_MarshalJSON(t *testing.T) {
+	// Mtx ptr; works
+	var tmp1 = struct{ Field *Mtx[[]int] }{Field: NewMtxPtr([]int{1, 2, 3})}
+	out1, _ := json.Marshal(tmp1)
+	assert.Equal(t, `{"Field":[1,2,3]}`, string(out1))
 }
 
 func TestRWMtx_RLockRUnlock(t *testing.T) {
@@ -296,6 +304,38 @@ func TestRWMap_Clone(t *testing.T) {
 	assert.Equal(t, 4, first(m.GetKey("a")))
 }
 
+func TestMap_MarshalJSON(t *testing.T) {
+	// Mtx ptr; works
+	var tmp1 = struct{ Field *Map[string, int] }{Field: NewRWMapPtr(map[string]int{"a": 1})}
+	out1, _ := json.Marshal(tmp1)
+	assert.Equal(t, `{"Field":{"a":1}}`, string(out1))
+
+	// Mtx ptr and give addr to json.Marshal; works
+	var tmp2 = struct{ Field *Map[string, int] }{Field: NewMapPtr(map[string]int{"a": 1})}
+	out2, _ := json.Marshal(&tmp2)
+	assert.Equal(t, `{"Field":{"a":1}}`, string(out2))
+
+	// Mtx is not a pointer, but give address to struct to json.Marshal; works
+	var tmp3 = struct{ Field Map[string, int] }{Field: NewRWMap(map[string]int{"a": 1})}
+	out3, _ := json.Marshal(&tmp3)
+	assert.Equal(t, `{"Field":{"a":1}}`, string(out3))
+
+	// Somehow, the Locker field get marshalled if we do not provide an address to the struct
+	// or if the mutex itself is not a pointer
+	var tmp4 = struct{ Field Map[string, int] }{Field: NewRWMap(map[string]int{"a": 1})}
+	out4, err := json.Marshal(tmp4)
+	assert.NoError(t, err)
+	assert.Equal(t, `{"Field":{"Locker":{"a":1}}}`, string(out4))
+
+	var tmp5 = struct{ Field Map[string, int] }{Field: NewMap(map[string]int{"a": 1})}
+	out5, _ := json.Marshal(&tmp5)
+	assert.Equal(t, `{"Field":{"a":1}}`, string(out5))
+
+	var tmp6 = struct{ Field *Map[string, int] }{Field: NewMapPtr(map[string]int{"a": 1})}
+	out6, _ := json.Marshal(tmp6)
+	assert.Equal(t, `{"Field":{"a":1}}`, string(out6))
+}
+
 func TestSlice(t *testing.T) {
 	m := NewSlicePtr[int](nil)
 	assert.Equal(t, 0, m.Len())
@@ -366,6 +406,23 @@ func TestRWSlice_Filter(t *testing.T) {
 	assert.Equal(t, 3, len(out))
 	assert.Equal(t, []int{2, 4, 6}, out)
 	assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, m.Get())
+}
+
+func TestSlice_MarshalJSON(t *testing.T) {
+	// Mtx ptr; works
+	var tmp1 = struct{ Field *Slice[int] }{Field: NewRWSlicePtr([]int{1, 2, 3})}
+	out1, _ := json.Marshal(tmp1)
+	assert.Equal(t, `{"Field":[1,2,3]}`, string(out1))
+
+	// Mtx ptr and give addr to json.Marshal; works
+	var tmp2 = struct{ Field *Slice[int] }{Field: NewSlicePtr([]int{1, 2, 3})}
+	out2, _ := json.Marshal(&tmp2)
+	assert.Equal(t, `{"Field":[1,2,3]}`, string(out2))
+
+	// Mtx is not a pointer, but give address to struct to json.Marshal; works
+	var tmp3 = struct{ Field Slice[int] }{Field: NewRWSlice([]int{1, 2, 3})}
+	out3, _ := json.Marshal(&tmp3)
+	assert.Equal(t, `{"Field":[1,2,3]}`, string(out3))
 }
 
 func TestRWUInt64(t *testing.T) {

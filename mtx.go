@@ -2,6 +2,7 @@ package mtx
 
 import (
 	"cmp"
+	"encoding/json"
 	"sync"
 )
 
@@ -41,6 +42,12 @@ func (m *base[M, T]) Lock() { m.m.Lock() }
 
 // Unlock exposes the underlying sync.Mutex Unlock function
 func (m *base[M, T]) Unlock() { m.m.Unlock() }
+
+// MarshalJSON implements Marshaler
+func (m *base[M, T]) MarshalJSON() (out []byte, err error) {
+	m.RWith(func(v T) { out, err = json.Marshal(v) })
+	return
+}
 
 // Val gets the wrapped value by the mutex.
 // WARNING: the caller must make sure the code that uses it is thread-safe
@@ -213,6 +220,12 @@ type Map[K cmp.Ordered, V any] struct {
 	Locker[map[K]V]
 }
 
+// MarshalJSON implements Marshaler
+func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
+	m.RWith(func(v map[K]V) { out, err = json.Marshal(v) })
+	return
+}
+
 // SetKey sets a key in the map
 func (m *Map[K, V]) SetKey(k K, v V) {
 	m.With(func(m *map[K]V) { (*m)[k] = v })
@@ -360,6 +373,12 @@ type Slice[V any] struct {
 
 func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
 	return &Slice[V]{m}
+}
+
+// MarshalJSON implements Marshaler
+func (s *Slice[T]) MarshalJSON() (out []byte, err error) {
+	s.RWith(func(v []T) { out, err = json.Marshal(v) })
+	return
 }
 
 // Each iterates each values of the slice
