@@ -314,7 +314,7 @@ func TestRWSlice(t *testing.T) {
 }
 
 func TestSlice_InitialValue(t *testing.T) {
-	m := NewSlice[int]([]int{1, 2, 3})
+	m := NewSlice([]int{1, 2, 3})
 	assert.Equal(t, []int{1, 2, 3}, m.Get())
 }
 
