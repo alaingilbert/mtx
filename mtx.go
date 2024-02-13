@@ -72,7 +72,7 @@ func (m *base[M, T]) MarshalJSON() (out []byte, err error) {
 }
 
 // GetPointer returns a pointer to the protected value
-// WARNING: the caller must make sure the code that uses it is thread-safe
+// WARNING: the caller must make sure the code that uses the returned pointer is thread-safe
 func (m *base[M, T]) GetPointer() *T {
 	return &m.v
 }
