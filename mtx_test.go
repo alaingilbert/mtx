@@ -326,6 +326,13 @@ func TestRWMap_Clone(t *testing.T) {
 	assert.Equal(t, 4, first(m.Get("a")))
 }
 
+func TestMap_IsEmpty(t *testing.T) {
+	m := NewRWMap(map[string]int{"a": 1})
+	assert.False(t, m.IsEmpty())
+	m.Delete("a")
+	assert.True(t, m.IsEmpty())
+}
+
 func TestMap_MarshalJSON(t *testing.T) {
 	// Mtx ptr; works
 	var tmp1 = struct{ Field *Map[string, int] }{Field: NewRWMapPtr(map[string]int{"a": 1})}
@@ -429,6 +436,13 @@ func TestRWSlice_Filter(t *testing.T) {
 	assert.Equal(t, 3, len(out))
 	assert.Equal(t, []int{2, 4, 6}, out)
 	assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, m.Load())
+}
+
+func TestSlice_IsEmpty(t *testing.T) {
+	s := NewSlice([]int{1})
+	assert.False(t, s.IsEmpty())
+	s.Pop()
+	assert.True(t, s.IsEmpty())
 }
 
 func TestSlice_MarshalJSON(t *testing.T) {

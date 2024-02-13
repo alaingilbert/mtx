@@ -226,6 +226,7 @@ type IMap[K cmp.Ordered, V any] interface {
 	Get(k K) (out V, ok bool)
 	GetKeyValue(k K) (key K, value V, ok bool)
 	Insert(k K, v V)
+	IsEmpty() bool
 	Keys() (out []K)
 	Len() (out int)
 	Remove(k K) (out V, ok bool)
@@ -296,6 +297,12 @@ func (m *Map[K, V]) Delete(k K) {
 // Len returns the length of the map
 func (m *Map[K, V]) Len() (out int) {
 	m.RWith(func(mm map[K]V) { out = len(mm) })
+	return
+}
+
+// IsEmpty returns true if the map contains no elements.
+func (m *Map[K, V]) IsEmpty() (out bool) {
+	m.RWith(func(mm map[K]V) { out = len(mm) == 0 })
 	return
 }
 
@@ -376,13 +383,14 @@ type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
 	Clone() (out []T)
-	Remove(i int) (out T)
 	Each(clb func(T))
 	Filter(func(T) bool) []T
 	Get(i int) (out T)
 	Insert(i int, el T)
+	IsEmpty() bool
 	Len() (out int)
 	Pop() (out T)
+	Remove(i int) (out T)
 	Shift() (out T)
 	Unshift(el T)
 }
@@ -448,6 +456,12 @@ func (s *Slice[T]) Clone() (out []T) {
 // Len returns the length of the slice
 func (s *Slice[T]) Len() (out int) {
 	s.RWith(func(v []T) { out = len(v) })
+	return
+}
+
+// IsEmpty returns true if the map contains no elements.
+func (s *Slice[T]) IsEmpty() (out bool) {
+	s.RWith(func(v []T) { out = len(v) == 0 })
 	return
 }
 
