@@ -485,7 +485,11 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 
 //----------------------
 
-type Number[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~float32 | ~float64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64] struct {
+type Number[T ~uintptr |
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+	~float32 | ~float64 |
+	~complex64 | ~complex128] struct {
 	Locker[T]
 }
 
