@@ -459,6 +459,7 @@ func (s *Slice[T]) Get(i int) (out T) {
 
 // Remove removes the element at position i within the slice,
 // shifting all elements after it to the left
+// Panics if index is out of bounds
 func (s *Slice[T]) Remove(i int) (out T) {
 	s.With(func(v *[]T) { out, *v = (*v)[i], (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 	return
