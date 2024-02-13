@@ -70,9 +70,9 @@ type Something struct {
 }
 
 func someFn(s Something) {
-	s.SharedMapMtx.Lock()
-	defer s.SharedMapMtx.Unlock()
-	s.SharedMap["foo"] = 1
+    s.SharedMapMtx.Lock()
+    defer s.SharedMapMtx.Unlock()
+    s.SharedMap["foo"] = 1
 }
 ```
 
