@@ -376,10 +376,10 @@ type ISlice[T any] interface {
 	Locker[[]T]
 	Append(els ...T)
 	Clone() (out []T)
-	DeleteIdx(i int)
+	Delete(i int)
 	Each(clb func(T))
 	Filter(func(T) bool) []T
-	GetIdx(i int) (out T)
+	Get(i int) (out T)
 	Insert(i int, el T)
 	Len() (out int)
 	Pop() (out T)
@@ -452,13 +452,13 @@ func (s *Slice[T]) Len() (out int) {
 }
 
 // GetIdx get the element at index i
-func (s *Slice[T]) GetIdx(i int) (out T) {
+func (s *Slice[T]) Get(i int) (out T) {
 	s.RWith(func(v []T) { out = (v)[i] })
 	return
 }
 
 // DeleteIdx deletes the element at index i
-func (s *Slice[T]) DeleteIdx(i int) {
+func (s *Slice[T]) Delete(i int) {
 	s.With(func(v *[]T) { *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 }
 
