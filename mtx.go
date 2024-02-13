@@ -470,7 +470,7 @@ func (s *Slice[T]) Insert(i int, el T) {
 	})
 }
 
-// Filter ...
+// Filter returns a new slice of the elements that satisfy the "keep" predicate callback
 func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 	s.With(func(v *[]T) {
 		out = make([]T, 0)
@@ -485,6 +485,7 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 
 //----------------------
 
+// INumber all numbers
 type INumber interface {
 	~float32 | ~float64 |
 		~int | ~int8 | ~int16 | ~int32 | ~int64 |
@@ -492,30 +493,37 @@ type INumber interface {
 		~complex64 | ~complex128
 }
 
+// Number mutex protected number
 type Number[T INumber] struct {
 	Locker[T]
 }
 
+// NewNumber returns a new Number with a sync.Mutex as backend
 func NewNumber[T INumber](v T) Number[T] {
 	return Number[T]{NewMtxPtr[T](v)}
 }
 
+// NewNumberPtr same as NewNumber, but as a pointer
 func NewNumberPtr[T INumber](v T) *Number[T] {
 	return toPtr(NewNumber(v))
 }
 
+// NewRWNumber returns a new Number with a sync.RWMutex as backend
 func NewRWNumber[T INumber](v T) Number[T] {
 	return Number[T]{NewRWMtxPtr[T](v)}
 }
 
+// NewRWNumberPtr same as NewRWNumber, but as a pointer
 func NewRWNumberPtr[T INumber](v T) *Number[T] {
 	return toPtr(NewRWNumber(v))
 }
 
+// Add adds "diff" to the protected number
 func (n *Number[T]) Add(diff T) {
 	n.With(func(v *T) { *v += diff })
 }
 
+// Sub subtract "diff" to the protected number
 func (n *Number[T]) Sub(diff T) {
 	n.With(func(v *T) { *v -= diff })
 }
