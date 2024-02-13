@@ -497,10 +497,10 @@ func NewRWUInt64Ptr[T ~uint64](v T) *RWUInt64[T] {
 	return &RWUInt64[T]{NewRWMtxPtr[T](v)}
 }
 
-func (s *RWUInt64[T]) Incr(diff T) {
+func (s *RWUInt64[T]) Add(diff T) {
 	s.With(func(v *T) { *v += diff })
 }
 
-func (s *RWUInt64[T]) Decr(diff T) {
+func (s *RWUInt64[T]) Sub(diff T) {
 	s.With(func(v *T) { *v -= diff })
 }
