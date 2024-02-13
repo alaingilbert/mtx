@@ -89,8 +89,8 @@ func someFn(s *Something) {
 
 // This is also good
 func someOtherFn(s *Something) {
-    s.SharedMap.With(func(sharedMap *map[string]int) {
-        (*sharedMap)["foo"] = 1
+    s.SharedMap.With(func(sharedMapPtr *map[string]int) {
+        (*sharedMapPtr)["foo"] = 1
     })
 }
 
