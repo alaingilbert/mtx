@@ -47,8 +47,8 @@ func main() {
         SharedRWMap      mtx.Map[string, int]
         SharedSlice      mtx.Slice[int]
         SharedRWSlice    mtx.Slice[int]
-		SharedSlicePtr   *mtx.Slice[int]
-		SharedRWSlicePtr *mtx.Slice[int]
+        SharedSlicePtr   *mtx.Slice[int]
+        SharedRWSlicePtr *mtx.Slice[int]
     }
     something := Something{
         Field1:           "",
@@ -58,8 +58,8 @@ func main() {
         SharedRWMap:      mtx.NewRWMap(map[string]int{"b": 2}), // uses sync.RWMutex
         SharedSlice:      mtx.NewSlice([]int{1, 2, 3}),         // uses sync.Mutex
         SharedRWSlice:    mtx.NewRWSlice([]int{4, 5, 6}),       // uses sync.RWMutex
-		SharedSlicePtr:   mtx.NewSlicePtr([]int{7, 8, 9}),      // uses sync.Mutex
-		SharedRWSlicePtr: mtx.NewRWSlicePtr([]int{10, 11, 12}), // uses sync.RWMutex
+        SharedSlicePtr:   mtx.NewSlicePtr([]int{7, 8, 9}),      // uses sync.Mutex
+        SharedRWSlicePtr: mtx.NewRWSlicePtr([]int{10, 11, 12}), // uses sync.RWMutex
     }
     fmt.Println(something)
 }
