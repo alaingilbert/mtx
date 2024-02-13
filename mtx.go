@@ -50,6 +50,8 @@ type Locker[T any] interface {
 // Compile time checks to ensure type satisfies Locker interface
 var _ Locker[any] = (*base[sync.Locker, any])(nil)
 
+//-----------------------------------------------------------------------------
+
 type base[M sync.Locker, T any] struct {
 	m M
 	v T
@@ -130,7 +132,7 @@ func (m *base[M, T]) Replace(newVal T) (old T) {
 	return
 }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // Mtx generic helper for sync.Mutex
 type Mtx[T any] struct {
@@ -145,7 +147,7 @@ func NewMtx[T any](v T) Mtx[T] {
 // NewMtxPtr creates a new pointer to *Mtx
 func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // RWMtx generic helper for sync.RWMutex
 type RWMtx[T any] struct {
@@ -184,7 +186,7 @@ func (m *RWMtx[T]) RWith(clb func(v T)) {
 	})
 }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // returns a default empty map if v is nil
 func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
@@ -202,7 +204,7 @@ func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 // NewMapPtr same as NewMap, but as a pointer
 func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap[K, V](v)) }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // NewRWMap returns a new Map with a sync.RWMutex as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
@@ -212,7 +214,7 @@ func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 // NewRWMapPtr same as NewRWMap, but as a pointer
 func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap[K, V](v)) }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // IMap is the interface that Map implements
 type IMap[K cmp.Ordered, V any] interface {
@@ -339,7 +341,7 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 	return
 }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // returns a default empty slice if v is nil
 func defaultSlice[T any](v []T) []T {
@@ -357,7 +359,7 @@ func NewSlice[T any](v []T) Slice[T] {
 // NewSlicePtr same as NewSlice, but as a pointer
 func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // NewRWSlice returns a new Slice with a sync.RWMutex as backend
 func NewRWSlice[T any](v []T) Slice[T] {
@@ -367,7 +369,7 @@ func NewRWSlice[T any](v []T) Slice[T] {
 // NewRWSlicePtr same as NewRWSlice, but as a pointer
 func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice[T](v)) }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // ISlice is the interface that Slice implements
 type ISlice[T any] interface {
@@ -483,7 +485,7 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 	return
 }
 
-//----------------------
+//-----------------------------------------------------------------------------
 
 // INumber all numbers
 type INumber interface {
