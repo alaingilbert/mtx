@@ -141,13 +141,10 @@ type mtx[T any] struct {
 	*base[*sync.Mutex, T]
 }
 
-// newMtx creates a new mtx
-func newMtx[T any](v T) mtx[T] {
-	return mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
+// newMtxPtr creates a new mtx
+func newMtxPtr[T any](v T) *mtx[T] {
+	return &mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
 }
-
-// newMtxPtr creates a new pointer to *mtx
-func newMtxPtr[T any](v T) *mtx[T] { return toPtr(newMtx(v)) }
 
 //-----------------------------------------------------------------------------
 
