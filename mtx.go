@@ -197,9 +197,7 @@ type Mtx[T any] struct {
 }
 
 // NewMtx returns a new Mtx with a sync.Mutex as backend
-func NewMtx[T any](v T) Mtx[T] {
-	return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))}
-}
+func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))} }
 
 // NewMtxPtr same as NewMtx, but as a pointer
 func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx[T](v)) }
