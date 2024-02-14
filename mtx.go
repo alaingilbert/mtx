@@ -190,13 +190,13 @@ type Mtx[T any] struct{ Locker[T] }
 func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))} }
 
 // NewMtxPtr same as NewMtx, but as a pointer
-func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx[T](v)) }
+func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
 
 // NewRWMtx returns a new Mtx with a sync.RWMutex as backend
 func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newRWMtxPtr(v))} }
 
 // NewRWMtxPtr same as Mtx, but as a pointer
-func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx[T](v)) }
+func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx(v)) }
 
 // MarshalJSON implements Marshaler
 func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
@@ -220,7 +220,7 @@ func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 }
 
 // NewMapPtr same as NewMap, but as a pointer
-func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap[K, V](v)) }
+func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
 
 //-----------------------------------------------------------------------------
 
@@ -230,7 +230,7 @@ func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 }
 
 // NewRWMapPtr same as NewRWMap, but as a pointer
-func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap[K, V](v)) }
+func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
 
 //-----------------------------------------------------------------------------
 
@@ -384,7 +384,7 @@ func NewSlice[T any](v []T) Slice[T] {
 }
 
 // NewSlicePtr same as NewSlice, but as a pointer
-func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
+func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
 
 //-----------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ func NewRWSlice[T any](v []T) Slice[T] {
 }
 
 // NewRWSlicePtr same as NewRWSlice, but as a pointer
-func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice[T](v)) }
+func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice(v)) }
 
 //-----------------------------------------------------------------------------
 
