@@ -153,13 +153,10 @@ type rwMtx[T any] struct {
 	*base[*sync.RWMutex, T]
 }
 
-// newRWMtx creates a new rwMtx
-func newRWMtx[T any](v T) rwMtx[T] {
-	return rwMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
+// newRWMtxPtr creates a new rwMtx
+func newRWMtxPtr[T any](v T) *rwMtx[T] {
+	return &rwMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
 }
-
-// newRWMtxPtr creates a new pointer to *rwMtx
-func newRWMtxPtr[T any](v T) *rwMtx[T] { return toPtr(newRWMtx(v)) }
 
 // RLock exposes the underlying sync.RWMutex RLock function
 func (m *rwMtx[T]) RLock() { m.m.RLock() }
