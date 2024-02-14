@@ -28,6 +28,12 @@ import (
 	"sync"
 )
 
+// Mutex alias type
+type Mutex = sync.Mutex
+
+// RWMutex alias type
+type RWMutex = sync.RWMutex
+
 var debug = false
 
 func toPtr[T any](v T) *T { return &v }
@@ -137,26 +143,18 @@ func (m *base[M, T]) Swap(newVal T) (old T) {
 //-----------------------------------------------------------------------------
 
 // mtx generic helper for sync.Mutex
-type mtx[T any] struct {
-	*base[*sync.Mutex, T]
-}
+type mtx[T any] struct{ *base[*Mutex, T] }
 
 // newMtxPtr creates a new mtx
-func newMtxPtr[T any](v T) *mtx[T] {
-	return &mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
-}
+func newMtxPtr[T any](v T) *mtx[T] { return &mtx[T]{newBase[*Mutex, T](&Mutex{}, v)} }
 
 //-----------------------------------------------------------------------------
 
 // rwMtx generic helper for sync.RWMutex
-type rwMtx[T any] struct {
-	*base[*sync.RWMutex, T]
-}
+type rwMtx[T any] struct{ *base[*RWMutex, T] }
 
 // newRWMtxPtr creates a new rwMtx
-func newRWMtxPtr[T any](v T) *rwMtx[T] {
-	return &rwMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
-}
+func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase[*RWMutex, T](&RWMutex{}, v)} }
 
 // RLock exposes the underlying sync.RWMutex RLock function
 func (m *rwMtx[T]) RLock() { m.m.RLock() }
