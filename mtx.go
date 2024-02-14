@@ -190,7 +190,7 @@ func (m *rwMtx[T]) RWith(clb func(v T)) {
 
 //-----------------------------------------------------------------------------
 
-// Compile time checks to ensure type satisfies IMtx interface
+// Compile time checks to ensure type satisfies Locker interface
 var _ Locker[any] = (*Mtx[any])(nil)
 
 func newBaseMtxPtr[T any](m Locker[T]) *Mtx[T] {
