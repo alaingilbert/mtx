@@ -34,11 +34,13 @@ func toPtr[T any](v T) *T { return &v }
 
 func first[T any](a T, _ ...any) T { return a }
 
-// Locker is the interface that each mtx types implements (Mtx/RWMtx/Map/Slice/Number)
+// Locker is the interface that each mtx types implements (mtx/rwMtx/Map/Slice/Number)
 type Locker[T any] interface {
 	sync.Locker
 	GetPointer() *T
 	Load() T
+	RLock()
+	RUnlock()
 	RWith(clb func(v T))
 	RWithE(clb func(v T) error) error
 	Store(v T)
@@ -67,11 +69,11 @@ func (m *base[M, T]) Lock() { m.m.Lock() }
 // Unlock exposes the underlying sync.Mutex Unlock function
 func (m *base[M, T]) Unlock() { m.m.Unlock() }
 
-// MarshalJSON implements Marshaler
-func (m *base[M, T]) MarshalJSON() (out []byte, err error) {
-	m.RWith(func(v T) { out, err = json.Marshal(v) })
-	return
-}
+// RLock is a default implementation of RLock to satisfy Locker interface
+func (m *base[M, T]) RLock() { m.Lock() }
+
+// RUnlock is a default implementation of RUnlock to satisfy Locker interface
+func (m *base[M, T]) RUnlock() { m.Unlock() }
 
 // GetPointer returns a pointer to the protected value
 // WARNING: the caller must make sure the code that uses the returned pointer is thread-safe
@@ -134,44 +136,44 @@ func (m *base[M, T]) Swap(newVal T) (old T) {
 
 //-----------------------------------------------------------------------------
 
-// Mtx generic helper for sync.Mutex
-type Mtx[T any] struct {
+// mtx generic helper for sync.Mutex
+type mtx[T any] struct {
 	*base[*sync.Mutex, T]
 }
 
-// NewMtx creates a new Mtx
-func NewMtx[T any](v T) Mtx[T] {
-	return Mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
+// newMtx creates a new mtx
+func newMtx[T any](v T) mtx[T] {
+	return mtx[T]{newBase[*sync.Mutex, T](&sync.Mutex{}, v)}
 }
 
-// NewMtxPtr creates a new pointer to *Mtx
-func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
+// newMtxPtr creates a new pointer to *mtx
+func newMtxPtr[T any](v T) *mtx[T] { return toPtr(newMtx(v)) }
 
 //-----------------------------------------------------------------------------
 
-// RWMtx generic helper for sync.RWMutex
-type RWMtx[T any] struct {
+// rwMtx generic helper for sync.RWMutex
+type rwMtx[T any] struct {
 	*base[*sync.RWMutex, T]
 }
 
-// NewRWMtx creates a new RWMtx
-func NewRWMtx[T any](v T) RWMtx[T] {
-	return RWMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
+// newRWMtx creates a new rwMtx
+func newRWMtx[T any](v T) rwMtx[T] {
+	return rwMtx[T]{newBase[*sync.RWMutex, T](&sync.RWMutex{}, v)}
 }
 
-// NewRWMtxPtr creates a new pointer to *RWMtx
-func NewRWMtxPtr[T any](v T) *RWMtx[T] { return toPtr(NewRWMtx(v)) }
+// newRWMtxPtr creates a new pointer to *rwMtx
+func newRWMtxPtr[T any](v T) *rwMtx[T] { return toPtr(newRWMtx(v)) }
 
 // RLock exposes the underlying sync.RWMutex RLock function
-func (m *RWMtx[T]) RLock() { m.m.RLock() }
+func (m *rwMtx[T]) RLock() { m.m.RLock() }
 
 // RUnlock exposes the underlying sync.RWMutex RUnlock function
-func (m *RWMtx[T]) RUnlock() { m.m.RUnlock() }
+func (m *rwMtx[T]) RUnlock() { m.m.RUnlock() }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
-func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
+func (m *rwMtx[T]) RWithE(clb func(v T) error) error {
 	if debug {
-		println("RWMtx RWithE")
+		println("rwMtx RWithE")
 	}
 	m.RLock()
 	defer m.RUnlock()
@@ -179,11 +181,47 @@ func (m *RWMtx[T]) RWithE(clb func(v T) error) error {
 }
 
 // RWith same as RWithE but do not return an error
-func (m *RWMtx[T]) RWith(clb func(v T)) {
+func (m *rwMtx[T]) RWith(clb func(v T)) {
 	_ = m.RWithE(func(tx T) error {
 		clb(tx)
 		return nil
 	})
+}
+
+//-----------------------------------------------------------------------------
+
+// Compile time checks to ensure type satisfies IMtx interface
+var _ Locker[any] = (*Mtx[any])(nil)
+
+func newBaseMtxPtr[T any](m Locker[T]) *Mtx[T] {
+	return &Mtx[T]{m}
+}
+
+// Mtx mutex protected gen
+type Mtx[T any] struct {
+	Locker[T]
+}
+
+// NewMtx returns a new Mtx with a sync.Mutex as backend
+func NewMtx[T any](v T) Mtx[T] {
+	return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))}
+}
+
+// NewMtxPtr same as NewMtx, but as a pointer
+func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx[T](v)) }
+
+// NewRWMtx returns a new Mtx with a sync.RWMutex as backend
+func NewRWMtx[T any](v T) Mtx[T] {
+	return Mtx[T]{newBaseMtxPtr[T](newRWMtxPtr(v))}
+}
+
+// NewRWMtxPtr same as Mtx, but as a pointer
+func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx[T](v)) }
+
+// MarshalJSON implements Marshaler
+func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
+	m.RWith(func(v T) { out, err = json.Marshal(v) })
+	return
 }
 
 //-----------------------------------------------------------------------------
@@ -198,7 +236,7 @@ func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
 
 // NewMap returns a new Map with a sync.Mutex as backend
 func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](NewMtxPtr(defaultMap(v)))}
+	return Map[K, V]{newBaseMapPtr[K, V](newMtxPtr(defaultMap(v)))}
 }
 
 // NewMapPtr same as NewMap, but as a pointer
@@ -208,7 +246,7 @@ func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap
 
 // NewRWMap returns a new Map with a sync.RWMutex as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](NewRWMtxPtr(defaultMap(v)))}
+	return Map[K, V]{newBaseMapPtr[K, V](newRWMtxPtr(defaultMap(v)))}
 }
 
 // NewRWMapPtr same as NewRWMap, but as a pointer
@@ -366,7 +404,7 @@ func defaultSlice[T any](v []T) []T {
 
 // NewSlice returns a new Slice with a sync.Mutex as backend
 func NewSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](NewMtxPtr(defaultSlice(v)))}
+	return Slice[T]{newBaseSlicePtr[T](newMtxPtr(defaultSlice(v)))}
 }
 
 // NewSlicePtr same as NewSlice, but as a pointer
@@ -376,7 +414,7 @@ func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice[T](v)) }
 
 // NewRWSlice returns a new Slice with a sync.RWMutex as backend
 func NewRWSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](NewRWMtxPtr(defaultSlice(v)))}
+	return Slice[T]{newBaseSlicePtr[T](newRWMtxPtr(defaultSlice(v)))}
 }
 
 // NewRWSlicePtr same as NewRWSlice, but as a pointer
@@ -531,7 +569,7 @@ type Number[T INumber] struct {
 
 // NewNumber returns a new Number with a sync.Mutex as backend
 func NewNumber[T INumber](v T) Number[T] {
-	return Number[T]{NewMtxPtr[T](v)}
+	return Number[T]{newMtxPtr[T](v)}
 }
 
 // NewNumberPtr same as NewNumber, but as a pointer
@@ -541,7 +579,7 @@ func NewNumberPtr[T INumber](v T) *Number[T] {
 
 // NewRWNumber returns a new Number with a sync.RWMutex as backend
 func NewRWNumber[T INumber](v T) Number[T] {
-	return Number[T]{NewRWMtxPtr[T](v)}
+	return Number[T]{newRWMtxPtr[T](v)}
 }
 
 // NewRWNumberPtr same as NewRWNumber, but as a pointer

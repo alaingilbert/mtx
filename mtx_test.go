@@ -103,6 +103,14 @@ func TestMtx_MarshalJSON(t *testing.T) {
 	assert.Equal(t, `{"Field":[1,2,3]}`, string(out1))
 }
 
+func TestMtx_RLockRUnlock(t *testing.T) {
+	m := NewMtx("old")
+	m.RLock()
+	val := m.GetPointer()
+	assert.Equal(t, "old", *val)
+	m.RUnlock()
+}
+
 func TestRWMtx_RLockRUnlock(t *testing.T) {
 	m := NewRWMtx("old")
 	m.RLock()
@@ -342,17 +350,17 @@ func TestMap_Clear(t *testing.T) {
 }
 
 func TestMap_MarshalJSON(t *testing.T) {
-	// Mtx ptr; works
+	// mtx ptr; works
 	var tmp1 = struct{ Field *Map[string, int] }{Field: NewRWMapPtr(map[string]int{"a": 1})}
 	out1, _ := json.Marshal(tmp1)
 	assert.Equal(t, `{"Field":{"a":1}}`, string(out1))
 
-	// Mtx ptr and give addr to json.Marshal; works
+	// mtx ptr and give addr to json.Marshal; works
 	var tmp2 = struct{ Field *Map[string, int] }{Field: NewMapPtr(map[string]int{"a": 1})}
 	out2, _ := json.Marshal(&tmp2)
 	assert.Equal(t, `{"Field":{"a":1}}`, string(out2))
 
-	// Mtx is not a pointer, but give address to struct to json.Marshal; works
+	// mtx is not a pointer, but give address to struct to json.Marshal; works
 	var tmp3 = struct{ Field Map[string, int] }{Field: NewRWMap(map[string]int{"a": 1})}
 	out3, _ := json.Marshal(&tmp3)
 	assert.Equal(t, `{"Field":{"a":1}}`, string(out3))
@@ -462,17 +470,17 @@ func TestSlice_Clear(t *testing.T) {
 }
 
 func TestSlice_MarshalJSON(t *testing.T) {
-	// Mtx ptr; works
+	// mtx ptr; works
 	var tmp1 = struct{ Field *Slice[int] }{Field: NewRWSlicePtr([]int{1, 2, 3})}
 	out1, _ := json.Marshal(tmp1)
 	assert.Equal(t, `{"Field":[1,2,3]}`, string(out1))
 
-	// Mtx ptr and give addr to json.Marshal; works
+	// mtx ptr and give addr to json.Marshal; works
 	var tmp2 = struct{ Field *Slice[int] }{Field: NewSlicePtr([]int{1, 2, 3})}
 	out2, _ := json.Marshal(&tmp2)
 	assert.Equal(t, `{"Field":[1,2,3]}`, string(out2))
 
-	// Mtx is not a pointer, but give address to struct to json.Marshal; works
+	// mtx is not a pointer, but give address to struct to json.Marshal; works
 	var tmp3 = struct{ Field Slice[int] }{Field: NewRWSlice([]int{1, 2, 3})}
 	out3, _ := json.Marshal(&tmp3)
 	assert.Equal(t, `{"Field":[1,2,3]}`, string(out3))
