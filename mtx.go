@@ -142,7 +142,7 @@ func (m *base[M, T]) Swap(newVal T) (old T) {
 type mtx[T any] struct{ *base[*Mutex, T] }
 
 // newMtxPtr creates a new mtx
-func newMtxPtr[T any](v T) *mtx[T] { return &mtx[T]{newBase[*Mutex, T](&Mutex{}, v)} }
+func newMtxPtr[T any](v T) *mtx[T] { return &mtx[T]{newBase(&Mutex{}, v)} }
 
 //-----------------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ func newMtxPtr[T any](v T) *mtx[T] { return &mtx[T]{newBase[*Mutex, T](&Mutex{},
 type rwMtx[T any] struct{ *base[*RWMutex, T] }
 
 // newRWMtxPtr creates a new rwMtx
-func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase[*RWMutex, T](&RWMutex{}, v)} }
+func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase(&RWMutex{}, v)} }
 
 // RLock exposes the underlying sync.RWMutex RLock function
 func (m *rwMtx[T]) RLock() { m.m.RLock() }
