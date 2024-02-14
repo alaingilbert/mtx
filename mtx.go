@@ -34,7 +34,7 @@ func toPtr[T any](v T) *T { return &v }
 
 func first[T any](a T, _ ...any) T { return a }
 
-// Locker is the interface that each mtx types implements (mtx/rwMtx/Map/Slice/Number)
+// Locker is the interface that each mtx types implements (Mtx/Map/Slice/Number)
 type Locker[T any] interface {
 	sync.Locker
 	GetPointer() *T
