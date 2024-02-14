@@ -65,9 +65,7 @@ type base[M sync.Locker, T any] struct {
 	v T
 }
 
-func newBase[M sync.Locker, T any](m M, v T) *base[M, T] {
-	return &base[M, T]{m: m, v: v}
-}
+func newBase[M sync.Locker, T any](m M, v T) *base[M, T] { return &base[M, T]{m: m, v: v} }
 
 // Lock exposes the underlying sync.Mutex Lock function
 func (m *base[M, T]) Lock() { m.m.Lock() }
@@ -83,9 +81,7 @@ func (m *base[M, T]) RUnlock() { m.Unlock() }
 
 // GetPointer returns a pointer to the protected value
 // WARNING: the caller must make sure the code that uses the returned pointer is thread-safe
-func (m *base[M, T]) GetPointer() *T {
-	return &m.v
-}
+func (m *base[M, T]) GetPointer() *T { return &m.v }
 
 // WithE provide a callback scope where the wrapped value can be safely used
 func (m *base[M, T]) WithE(clb func(v *T) error) error {
@@ -188,9 +184,7 @@ var _ Locker[any] = (*Mtx[any])(nil)
 func newBaseMtxPtr[T any](m Locker[T]) *Mtx[T] { return &Mtx[T]{m} }
 
 // Mtx mutex protected gen
-type Mtx[T any] struct {
-	Locker[T]
-}
+type Mtx[T any] struct{ Locker[T] }
 
 // NewMtx returns a new Mtx with a sync.Mutex as backend
 func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))} }
@@ -261,14 +255,10 @@ type IMap[K cmp.Ordered, V any] interface {
 // Compile time checks to ensure type satisfies IMap interface
 var _ IMap[int, int] = (*Map[int, int])(nil)
 
-func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] {
-	return &Map[K, V]{m}
-}
+func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] { return &Map[K, V]{m} }
 
 // Map mutex protected map
-type Map[K cmp.Ordered, V any] struct {
-	Locker[map[K]V]
-}
+type Map[K cmp.Ordered, V any] struct{ Locker[map[K]V] }
 
 // MarshalJSON implements Marshaler
 func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
@@ -430,13 +420,9 @@ type ISlice[T any] interface {
 var _ ISlice[any] = (*Slice[any])(nil)
 
 // Slice mutex protected slice
-type Slice[V any] struct {
-	Locker[[]V]
-}
+type Slice[V any] struct{ Locker[[]V] }
 
-func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] {
-	return &Slice[V]{m}
-}
+func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] { return &Slice[V]{m} }
 
 // MarshalJSON implements Marshaler
 func (s *Slice[T]) MarshalJSON() (out []byte, err error) {
@@ -549,36 +535,22 @@ type INumber interface {
 }
 
 // Number mutex protected number
-type Number[T INumber] struct {
-	Locker[T]
-}
+type Number[T INumber] struct{ Locker[T] }
 
 // NewNumber returns a new Number with a sync.Mutex as backend
-func NewNumber[T INumber](v T) Number[T] {
-	return Number[T]{newMtxPtr[T](v)}
-}
+func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr[T](v)} }
 
 // NewNumberPtr same as NewNumber, but as a pointer
-func NewNumberPtr[T INumber](v T) *Number[T] {
-	return toPtr(NewNumber(v))
-}
+func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
 
 // NewRWNumber returns a new Number with a sync.RWMutex as backend
-func NewRWNumber[T INumber](v T) Number[T] {
-	return Number[T]{newRWMtxPtr[T](v)}
-}
+func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr[T](v)} }
 
 // NewRWNumberPtr same as NewRWNumber, but as a pointer
-func NewRWNumberPtr[T INumber](v T) *Number[T] {
-	return toPtr(NewRWNumber(v))
-}
+func NewRWNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewRWNumber(v)) }
 
 // Add adds "diff" to the protected number
-func (n *Number[T]) Add(diff T) {
-	n.With(func(v *T) { *v += diff })
-}
+func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
 
 // Sub subtract "diff" to the protected number
-func (n *Number[T]) Sub(diff T) {
-	n.With(func(v *T) { *v -= diff })
-}
+func (n *Number[T]) Sub(diff T) { n.With(func(v *T) { *v -= diff }) }
