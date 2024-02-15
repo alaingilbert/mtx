@@ -23,7 +23,6 @@
 package mtx
 
 import (
-	"cmp"
 	"encoding/json"
 	"sync"
 )
@@ -39,7 +38,7 @@ func toPtr[T any](v T) *T { return &v }
 func first[T any](a T, _ ...any) T { return a }
 
 // returns a default empty map if v is nil
-func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
+func defaultMap[K comparable, V any](v map[K]V) map[K]V {
 	if v == nil {
 		v = make(map[K]V)
 	}
@@ -73,7 +72,7 @@ type Locker[T any] interface {
 }
 
 // IMap is the interface that Map implements
-type IMap[K cmp.Ordered, V any] interface {
+type IMap[K comparable, V any] interface {
 	Locker[map[K]V]
 	Clear()
 	Clone() (out map[K]V)
@@ -123,7 +122,7 @@ type INumber interface {
 type Mtx[T any] struct{ Locker[T] }
 
 // Map mutex protected map
-type Map[K cmp.Ordered, V any] struct{ Locker[map[K]V] }
+type Map[K comparable, V any] struct{ Locker[map[K]V] }
 
 // Slice mutex protected slice
 type Slice[V any] struct{ Locker[[]V] }
@@ -159,12 +158,12 @@ func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr(v)} }
 func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
 
 // NewMap returns a new Map with a sync.Mutex as backend
-func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+func NewMap[K comparable, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{&Map[K, V]{newMtxPtr(defaultMap(v))}}
 }
 
 // NewRWMap returns a new Map with a sync.RWMutex as backend
-func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+func NewRWMap[K comparable, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{&Map[K, V]{newRWMtxPtr(defaultMap(v))}}
 }
 
@@ -187,10 +186,10 @@ func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
 func NewRWNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewRWNumber(v)) }
 
 // NewMapPtr same as NewMap, but as a pointer
-func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
+func NewMapPtr[K comparable, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
 
 // NewRWMapPtr same as NewRWMap, but as a pointer
-func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
+func NewRWMapPtr[K comparable, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
 
 // NewSlicePtr same as NewSlice, but as a pointer
 func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
