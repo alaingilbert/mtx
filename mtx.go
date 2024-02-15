@@ -34,8 +34,6 @@ type Mutex = sync.Mutex
 // RWMutex alias type
 type RWMutex = sync.RWMutex
 
-var debug = false
-
 func toPtr[T any](v T) *T { return &v }
 
 func first[T any](a T, _ ...any) T { return a }
@@ -100,9 +98,6 @@ func (m *base[M, T]) With(clb func(v *T)) {
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *base[M, T]) RWithE(clb func(v T) error) error {
-	if debug {
-		println("base RWithE")
-	}
 	return m.WithE(func(v *T) error {
 		return clb(*v)
 	})
@@ -154,9 +149,6 @@ func (m *rwMtx[T]) RUnlock() { m.m.RUnlock() }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
 func (m *rwMtx[T]) RWithE(clb func(v T) error) error {
-	if debug {
-		println("rwMtx RWithE")
-	}
 	m.RLock()
 	defer m.RUnlock()
 	return clb(m.v)
