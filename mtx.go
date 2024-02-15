@@ -528,10 +528,10 @@ type INumber interface {
 type Number[T INumber] struct{ Locker[T] }
 
 // NewNumber returns a new Number with a sync.Mutex as backend
-func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr[T](v)} }
+func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr(v)} }
 
 // NewRWNumber returns a new Number with a sync.RWMutex as backend
-func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr[T](v)} }
+func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
 
 // NewNumberPtr same as NewNumber, but as a pointer
 func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
