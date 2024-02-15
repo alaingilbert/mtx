@@ -172,8 +172,6 @@ func (m *rwMtx[T]) RWith(clb func(v T)) {
 
 //-----------------------------------------------------------------------------
 
-func newBaseMtxPtr[T any](m Locker[T]) *Mtx[T] { return &Mtx[T]{m} }
-
 // Mtx mutex protected gen
 type Mtx[T any] struct{ Locker[T] }
 
@@ -181,10 +179,10 @@ type Mtx[T any] struct{ Locker[T] }
 var _ Locker[any] = (*Mtx[any])(nil)
 
 // NewMtx returns a new Mtx with a sync.Mutex as backend
-func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))} }
+func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newMtxPtr(v)} }
 
 // NewRWMtx returns a new Mtx with a sync.RWMutex as backend
-func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newRWMtxPtr(v))} }
+func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newRWMtxPtr(v)} }
 
 // NewMtxPtr same as NewMtx, but as a pointer
 func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
