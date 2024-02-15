@@ -189,11 +189,11 @@ var _ Locker[any] = (*Mtx[any])(nil)
 // NewMtx returns a new Mtx with a sync.Mutex as backend
 func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newMtxPtr(v))} }
 
-// NewMtxPtr same as NewMtx, but as a pointer
-func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
-
 // NewRWMtx returns a new Mtx with a sync.RWMutex as backend
 func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newBaseMtxPtr[T](newRWMtxPtr(v))} }
+
+// NewMtxPtr same as NewMtx, but as a pointer
+func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
 
 // NewRWMtxPtr same as Mtx, but as a pointer
 func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx(v)) }
@@ -219,15 +219,13 @@ func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](newMtxPtr(defaultMap(v)))}
 }
 
-// NewMapPtr same as NewMap, but as a pointer
-func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
-
-//-----------------------------------------------------------------------------
-
 // NewRWMap returns a new Map with a sync.RWMutex as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
 	return Map[K, V]{newBaseMapPtr[K, V](newRWMtxPtr(defaultMap(v)))}
 }
+
+// NewMapPtr same as NewMap, but as a pointer
+func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
 
 // NewRWMapPtr same as NewRWMap, but as a pointer
 func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
@@ -383,15 +381,13 @@ func NewSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](newMtxPtr(defaultSlice(v)))}
 }
 
-// NewSlicePtr same as NewSlice, but as a pointer
-func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
-
-//-----------------------------------------------------------------------------
-
 // NewRWSlice returns a new Slice with a sync.RWMutex as backend
 func NewRWSlice[T any](v []T) Slice[T] {
 	return Slice[T]{newBaseSlicePtr[T](newRWMtxPtr(defaultSlice(v)))}
 }
+
+// NewSlicePtr same as NewSlice, but as a pointer
+func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
 
 // NewRWSlicePtr same as NewRWSlice, but as a pointer
 func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice(v)) }
@@ -540,11 +536,11 @@ type Number[T INumber] struct{ Locker[T] }
 // NewNumber returns a new Number with a sync.Mutex as backend
 func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr[T](v)} }
 
-// NewNumberPtr same as NewNumber, but as a pointer
-func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
-
 // NewRWNumber returns a new Number with a sync.RWMutex as backend
 func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr[T](v)} }
+
+// NewNumberPtr same as NewNumber, but as a pointer
+func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
 
 // NewRWNumberPtr same as NewRWNumber, but as a pointer
 func NewRWNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewRWNumber(v)) }
