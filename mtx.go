@@ -155,14 +155,10 @@ func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr(v)} }
 func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
 
 // NewMap returns a new Map with a sync.Mutex as backend
-func NewMap[K comparable, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{&Map[K, V]{newMtxPtr(defaultMap(v))}}
-}
+func NewMap[K comparable, V any](v map[K]V) Map[K, V] { return Map[K, V]{newMtxPtr(defaultMap(v))} }
 
 // NewRWMap returns a new Map with a sync.RWMutex as backend
-func NewRWMap[K comparable, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{&Map[K, V]{newRWMtxPtr(defaultMap(v))}}
-}
+func NewRWMap[K comparable, V any](v map[K]V) Map[K, V] { return Map[K, V]{newRWMtxPtr(defaultMap(v))} }
 
 // NewSlice returns a new Slice with a sync.Mutex as backend
 func NewSlice[T any](v []T) Slice[T] { return Slice[T]{&Slice[T]{newMtxPtr(defaultSlice(v))}} }
