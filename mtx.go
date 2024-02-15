@@ -38,6 +38,25 @@ func toPtr[T any](v T) *T { return &v }
 
 func first[T any](a T, _ ...any) T { return a }
 
+// returns a default empty map if v is nil
+func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
+	if v == nil {
+		v = make(map[K]V)
+	}
+	return v
+}
+
+// returns a default empty slice if v is nil
+func defaultSlice[T any](v []T) []T {
+	if v == nil {
+		v = make([]T, 0)
+	}
+	return v
+}
+
+//-----------------------------------------------------------------------------
+// Interfaces
+
 // Locker is the interface that each mtx types implements (Mtx/Map/Slice/Number)
 type Locker[T any] interface {
 	sync.Locker
@@ -53,15 +72,138 @@ type Locker[T any] interface {
 	WithE(clb func(v *T) error) error
 }
 
-// Compile time checks to ensure type satisfies Locker interface
-var _ Locker[any] = (*base[sync.Locker, any])(nil)
+// IMap is the interface that Map implements
+type IMap[K cmp.Ordered, V any] interface {
+	Locker[map[K]V]
+	Clear()
+	Clone() (out map[K]V)
+	ContainsKey(k K) (found bool)
+	Delete(k K)
+	Each(clb func(K, V))
+	Get(k K) (out V, ok bool)
+	GetKeyValue(k K) (key K, value V, ok bool)
+	Insert(k K, v V)
+	IsEmpty() bool
+	Keys() (out []K)
+	Len() (out int)
+	Remove(k K) (out V, ok bool)
+	Values() (out []V)
+}
+
+// ISlice is the interface that Slice implements
+type ISlice[T any] interface {
+	Locker[[]T]
+	Append(els ...T)
+	Clear()
+	Clone() (out []T)
+	Each(clb func(T))
+	Filter(func(T) bool) []T
+	Get(i int) (out T)
+	Insert(i int, el T)
+	IsEmpty() bool
+	Len() (out int)
+	Pop() (out T)
+	Remove(i int) (out T)
+	Shift() (out T)
+	Unshift(el T)
+}
+
+// INumber all numbers
+type INumber interface {
+	~float32 | ~float64 |
+		~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+		~complex64 | ~complex128
+}
 
 //-----------------------------------------------------------------------------
+// Types
+
+// Mtx mutex protected value
+type Mtx[T any] struct{ Locker[T] }
+
+// Map mutex protected map
+type Map[K cmp.Ordered, V any] struct{ Locker[map[K]V] }
+
+// Slice mutex protected slice
+type Slice[V any] struct{ Locker[[]V] }
+
+// Number mutex protected number
+type Number[T INumber] struct{ Locker[T] }
 
 type base[M sync.Locker, T any] struct {
 	m M
 	v T
 }
+
+// Compile time checks to ensure types satisfies interfaces
+var _ Locker[any] = (*Mtx[any])(nil)
+var _ Locker[int] = (*Number[int])(nil)
+var _ IMap[int, int] = (*Map[int, int])(nil)
+var _ ISlice[any] = (*Slice[any])(nil)
+var _ Locker[any] = (*base[sync.Locker, any])(nil)
+
+//-----------------------------------------------------------------------------
+// Constructors
+
+// NewMtx returns a new Mtx with a sync.Mutex as backend
+func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newMtxPtr(v)} }
+
+// NewRWMtx returns a new Mtx with a sync.RWMutex as backend
+func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newRWMtxPtr(v)} }
+
+// NewNumber returns a new Number with a sync.Mutex as backend
+func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr(v)} }
+
+// NewRWNumber returns a new Number with a sync.RWMutex as backend
+func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
+
+// NewMap returns a new Map with a sync.Mutex as backend
+func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+	return Map[K, V]{newBaseMapPtr[K, V](newMtxPtr(defaultMap(v)))}
+}
+
+// NewRWMap returns a new Map with a sync.RWMutex as backend
+func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
+	return Map[K, V]{newBaseMapPtr[K, V](newRWMtxPtr(defaultMap(v)))}
+}
+
+// NewSlice returns a new Slice with a sync.Mutex as backend
+func NewSlice[T any](v []T) Slice[T] {
+	return Slice[T]{newBaseSlicePtr[T](newMtxPtr(defaultSlice(v)))}
+}
+
+// NewRWSlice returns a new Slice with a sync.RWMutex as backend
+func NewRWSlice[T any](v []T) Slice[T] {
+	return Slice[T]{newBaseSlicePtr[T](newRWMtxPtr(defaultSlice(v)))}
+}
+
+// NewMtxPtr same as NewMtx, but as a pointer
+func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
+
+// NewRWMtxPtr same as Mtx, but as a pointer
+func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx(v)) }
+
+// NewNumberPtr same as NewNumber, but as a pointer
+func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
+
+// NewRWNumberPtr same as NewRWNumber, but as a pointer
+func NewRWNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewRWNumber(v)) }
+
+// NewMapPtr same as NewMap, but as a pointer
+func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
+
+// NewRWMapPtr same as NewRWMap, but as a pointer
+func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
+
+// NewSlicePtr same as NewSlice, but as a pointer
+func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
+
+// NewRWSlicePtr same as NewRWSlice, but as a pointer
+func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice(v)) }
+
+//-----------------------------------------------------------------------------
+// Base implementation
 
 func newBase[M sync.Locker, T any](m M, v T) *base[M, T] { return &base[M, T]{m, v} }
 
@@ -163,24 +305,7 @@ func (m *rwMtx[T]) RWith(clb func(v T)) {
 }
 
 //-----------------------------------------------------------------------------
-
-// Mtx mutex protected gen
-type Mtx[T any] struct{ Locker[T] }
-
-// Compile time checks to ensure type satisfies Locker interface
-var _ Locker[any] = (*Mtx[any])(nil)
-
-// NewMtx returns a new Mtx with a sync.Mutex as backend
-func NewMtx[T any](v T) Mtx[T] { return Mtx[T]{newMtxPtr(v)} }
-
-// NewRWMtx returns a new Mtx with a sync.RWMutex as backend
-func NewRWMtx[T any](v T) Mtx[T] { return Mtx[T]{newRWMtxPtr(v)} }
-
-// NewMtxPtr same as NewMtx, but as a pointer
-func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
-
-// NewRWMtxPtr same as Mtx, but as a pointer
-func NewRWMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewRWMtx(v)) }
+// Methods for Mtx
 
 // MarshalJSON implements Marshaler
 func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
@@ -189,58 +314,9 @@ func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
 }
 
 //-----------------------------------------------------------------------------
-
-// returns a default empty map if v is nil
-func defaultMap[K cmp.Ordered, V any](v map[K]V) map[K]V {
-	if v == nil {
-		v = make(map[K]V)
-	}
-	return v
-}
-
-// NewMap returns a new Map with a sync.Mutex as backend
-func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](newMtxPtr(defaultMap(v)))}
-}
-
-// NewRWMap returns a new Map with a sync.RWMutex as backend
-func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](newRWMtxPtr(defaultMap(v)))}
-}
-
-// NewMapPtr same as NewMap, but as a pointer
-func NewMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewMap(v)) }
-
-// NewRWMapPtr same as NewRWMap, but as a pointer
-func NewRWMapPtr[K cmp.Ordered, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }
-
-//-----------------------------------------------------------------------------
-
-// IMap is the interface that Map implements
-type IMap[K cmp.Ordered, V any] interface {
-	Locker[map[K]V]
-	Clear()
-	Clone() (out map[K]V)
-	ContainsKey(k K) (found bool)
-	Delete(k K)
-	Each(clb func(K, V))
-	Get(k K) (out V, ok bool)
-	GetKeyValue(k K) (key K, value V, ok bool)
-	Insert(k K, v V)
-	IsEmpty() bool
-	Keys() (out []K)
-	Len() (out int)
-	Remove(k K) (out V, ok bool)
-	Values() (out []V)
-}
-
-// Compile time checks to ensure type satisfies IMap interface
-var _ IMap[int, int] = (*Map[int, int])(nil)
+// Methods for Map
 
 func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] { return &Map[K, V]{m} }
-
-// Map mutex protected map
-type Map[K cmp.Ordered, V any] struct{ Locker[map[K]V] }
 
 // MarshalJSON implements Marshaler
 func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
@@ -351,56 +427,7 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 }
 
 //-----------------------------------------------------------------------------
-
-// returns a default empty slice if v is nil
-func defaultSlice[T any](v []T) []T {
-	if v == nil {
-		v = make([]T, 0)
-	}
-	return v
-}
-
-// NewSlice returns a new Slice with a sync.Mutex as backend
-func NewSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](newMtxPtr(defaultSlice(v)))}
-}
-
-// NewRWSlice returns a new Slice with a sync.RWMutex as backend
-func NewRWSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](newRWMtxPtr(defaultSlice(v)))}
-}
-
-// NewSlicePtr same as NewSlice, but as a pointer
-func NewSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewSlice(v)) }
-
-// NewRWSlicePtr same as NewRWSlice, but as a pointer
-func NewRWSlicePtr[T any](v []T) *Slice[T] { return toPtr(NewRWSlice(v)) }
-
-//-----------------------------------------------------------------------------
-
-// ISlice is the interface that Slice implements
-type ISlice[T any] interface {
-	Locker[[]T]
-	Append(els ...T)
-	Clear()
-	Clone() (out []T)
-	Each(clb func(T))
-	Filter(func(T) bool) []T
-	Get(i int) (out T)
-	Insert(i int, el T)
-	IsEmpty() bool
-	Len() (out int)
-	Pop() (out T)
-	Remove(i int) (out T)
-	Shift() (out T)
-	Unshift(el T)
-}
-
-// Compile time checks to ensure type satisfies ISlice interface
-var _ ISlice[any] = (*Slice[any])(nil)
-
-// Slice mutex protected slice
-type Slice[V any] struct{ Locker[[]V] }
+// Methods for Slice
 
 func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] { return &Slice[V]{m} }
 
@@ -505,29 +532,7 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 }
 
 //-----------------------------------------------------------------------------
-
-// INumber all numbers
-type INumber interface {
-	~float32 | ~float64 |
-		~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
-		~complex64 | ~complex128
-}
-
-// Number mutex protected number
-type Number[T INumber] struct{ Locker[T] }
-
-// NewNumber returns a new Number with a sync.Mutex as backend
-func NewNumber[T INumber](v T) Number[T] { return Number[T]{newMtxPtr(v)} }
-
-// NewRWNumber returns a new Number with a sync.RWMutex as backend
-func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
-
-// NewNumberPtr same as NewNumber, but as a pointer
-func NewNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewNumber(v)) }
-
-// NewRWNumberPtr same as NewRWNumber, but as a pointer
-func NewRWNumberPtr[T INumber](v T) *Number[T] { return toPtr(NewRWNumber(v)) }
+// Methods for Number
 
 // Add adds "diff" to the protected number
 func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
