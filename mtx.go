@@ -23,7 +23,6 @@
 package mtx
 
 import (
-	"encoding/json"
 	"sync"
 )
 
@@ -302,20 +301,8 @@ func (m *rwMtx[T]) RWith(clb func(v T)) {
 //-----------------------------------------------------------------------------
 // Methods for Mtx
 
-// MarshalJSON implements Marshaler
-func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
-	m.RWith(func(v T) { out, err = json.Marshal(v) })
-	return
-}
-
 //-----------------------------------------------------------------------------
 // Methods for Map
-
-// MarshalJSON implements Marshaler
-func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
-	m.RWith(func(v map[K]V) { out, err = json.Marshal(v) })
-	return
-}
 
 // Clear clears the map, removing all key-value pairs
 func (m *Map[K, V]) Clear() {
@@ -422,12 +409,6 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 //-----------------------------------------------------------------------------
 // Methods for Slice
 
-// MarshalJSON implements Marshaler
-func (s *Slice[T]) MarshalJSON() (out []byte, err error) {
-	s.RWith(func(v []T) { out, err = json.Marshal(v) })
-	return
-}
-
 // Each iterates each values of the slice
 func (s *Slice[T]) Each(clb func(T)) {
 	s.RWith(func(v []T) {
@@ -524,12 +505,6 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 
 //-----------------------------------------------------------------------------
 // Methods for Number
-
-// MarshalJSON implements Marshaler
-func (n *Number[T]) MarshalJSON() (out []byte, err error) {
-	n.RWith(func(v T) { out, err = json.Marshal(v) })
-	return
-}
 
 // Add adds "diff" to the protected number
 func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
