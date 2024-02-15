@@ -525,6 +525,12 @@ func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
 //-----------------------------------------------------------------------------
 // Methods for Number
 
+// MarshalJSON implements Marshaler
+func (n *Number[T]) MarshalJSON() (out []byte, err error) {
+	n.RWith(func(v T) { out, err = json.Marshal(v) })
+	return
+}
+
 // Add adds "diff" to the protected number
 func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
 

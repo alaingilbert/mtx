@@ -505,3 +505,9 @@ func TestNumber(t *testing.T) {
 	n4.Sub(5)
 	assert.Equal(t, uint64(5), n4.Load())
 }
+
+func TestNumber_MarshalJSON(t *testing.T) {
+	var tmp1 = struct{ Field *Number[int] }{Field: NewRWNumberPtr(1)}
+	out1, _ := json.Marshal(tmp1)
+	assert.Equal(t, `{"Field":1}`, string(out1))
+}
