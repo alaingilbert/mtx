@@ -161,10 +161,10 @@ func NewMap[K comparable, V any](v map[K]V) Map[K, V] { return Map[K, V]{newMtxP
 func NewRWMap[K comparable, V any](v map[K]V) Map[K, V] { return Map[K, V]{newRWMtxPtr(defaultMap(v))} }
 
 // NewSlice returns a new Slice with a sync.Mutex as backend
-func NewSlice[T any](v []T) Slice[T] { return Slice[T]{&Slice[T]{newMtxPtr(defaultSlice(v))}} }
+func NewSlice[T any](v []T) Slice[T] { return Slice[T]{newMtxPtr(defaultSlice(v))} }
 
 // NewRWSlice returns a new Slice with a sync.RWMutex as backend
-func NewRWSlice[T any](v []T) Slice[T] { return Slice[T]{&Slice[T]{newRWMtxPtr(defaultSlice(v))}} }
+func NewRWSlice[T any](v []T) Slice[T] { return Slice[T]{newRWMtxPtr(defaultSlice(v))} }
 
 // NewMtxPtr same as NewMtx, but as a pointer
 func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
