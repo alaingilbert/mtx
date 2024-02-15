@@ -22,9 +22,7 @@
 
 package mtx
 
-import (
-	"sync"
-)
+import "sync"
 
 // Mutex alias type
 type Mutex = sync.Mutex
