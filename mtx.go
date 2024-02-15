@@ -65,7 +65,7 @@ type base[M sync.Locker, T any] struct {
 	v T
 }
 
-func newBase[M sync.Locker, T any](m M, v T) *base[M, T] { return &base[M, T]{m: m, v: v} }
+func newBase[M sync.Locker, T any](m M, v T) *base[M, T] { return &base[M, T]{m, v} }
 
 // Lock exposes the underlying sync.Mutex Lock function
 func (m *base[M, T]) Lock() { m.m.Lock() }
