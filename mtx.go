@@ -160,23 +160,19 @@ func NewRWNumber[T INumber](v T) Number[T] { return Number[T]{newRWMtxPtr(v)} }
 
 // NewMap returns a new Map with a sync.Mutex as backend
 func NewMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](newMtxPtr(defaultMap(v)))}
+	return Map[K, V]{&Map[K, V]{newMtxPtr(defaultMap(v))}}
 }
 
 // NewRWMap returns a new Map with a sync.RWMutex as backend
 func NewRWMap[K cmp.Ordered, V any](v map[K]V) Map[K, V] {
-	return Map[K, V]{newBaseMapPtr[K, V](newRWMtxPtr(defaultMap(v)))}
+	return Map[K, V]{&Map[K, V]{newRWMtxPtr(defaultMap(v))}}
 }
 
 // NewSlice returns a new Slice with a sync.Mutex as backend
-func NewSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](newMtxPtr(defaultSlice(v)))}
-}
+func NewSlice[T any](v []T) Slice[T] { return Slice[T]{&Slice[T]{newMtxPtr(defaultSlice(v))}} }
 
 // NewRWSlice returns a new Slice with a sync.RWMutex as backend
-func NewRWSlice[T any](v []T) Slice[T] {
-	return Slice[T]{newBaseSlicePtr[T](newRWMtxPtr(defaultSlice(v)))}
-}
+func NewRWSlice[T any](v []T) Slice[T] { return Slice[T]{&Slice[T]{newRWMtxPtr(defaultSlice(v))}} }
 
 // NewMtxPtr same as NewMtx, but as a pointer
 func NewMtxPtr[T any](v T) *Mtx[T] { return toPtr(NewMtx(v)) }
@@ -316,8 +312,6 @@ func (m *Mtx[T]) MarshalJSON() (out []byte, err error) {
 //-----------------------------------------------------------------------------
 // Methods for Map
 
-func newBaseMapPtr[K cmp.Ordered, V any](m Locker[map[K]V]) *Map[K, V] { return &Map[K, V]{m} }
-
 // MarshalJSON implements Marshaler
 func (m *Map[K, V]) MarshalJSON() (out []byte, err error) {
 	m.RWith(func(v map[K]V) { out, err = json.Marshal(v) })
@@ -428,8 +422,6 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 
 //-----------------------------------------------------------------------------
 // Methods for Slice
-
-func newBaseSlicePtr[V any](m Locker[[]V]) *Slice[V] { return &Slice[V]{m} }
 
 // MarshalJSON implements Marshaler
 func (s *Slice[T]) MarshalJSON() (out []byte, err error) {
