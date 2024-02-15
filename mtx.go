@@ -138,18 +138,12 @@ func (m *base[M, T]) Swap(newVal T) (old T) {
 
 //-----------------------------------------------------------------------------
 
-// mtx generic helper for sync.Mutex
+// generic helpers for sync.Mutex and sync.RWMutex
 type mtx[T any] struct{ *base[*Mutex, T] }
-
-// newMtxPtr creates a new mtx
-func newMtxPtr[T any](v T) *mtx[T] { return &mtx[T]{newBase(&Mutex{}, v)} }
-
-//-----------------------------------------------------------------------------
-
-// rwMtx generic helper for sync.RWMutex
 type rwMtx[T any] struct{ *base[*RWMutex, T] }
 
-// newRWMtxPtr creates a new rwMtx
+// newMtxPtr creates a new mtx / rwMtx
+func newMtxPtr[T any](v T) *mtx[T]     { return &mtx[T]{newBase(&Mutex{}, v)} }
 func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase(&RWMutex{}, v)} }
 
 // RLock exposes the underlying sync.RWMutex RLock function
