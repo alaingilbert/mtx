@@ -486,9 +486,9 @@ func (s *Slice[T]) Insert(i int, el T) {
 
 // Filter returns a new slice of the elements that satisfy the "keep" predicate callback
 func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
-	s.With(func(v *[]T) {
+	s.RWith(func(v []T) {
 		out = make([]T, 0)
-		for _, x := range *v {
+		for _, x := range v {
 			if keep(x) {
 				out = append(out, x)
 			}
