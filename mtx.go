@@ -261,106 +261,43 @@ func (m *rwMtx[T]) RWith(clb func(v T)) { rWith(m, clb) }
 // Methods for Map
 
 // Clear clears the map, removing all key-value pairs
-func (m *Map[K, V]) Clear() {
-	m.With(func(m *map[K]V) { clear(*m) })
-}
+func (m *Map[K, V]) Clear() { mapClear(m) }
 
 // Insert inserts a key/value in the map
-func (m *Map[K, V]) Insert(k K, v V) {
-	m.With(func(m *map[K]V) { (*m)[k] = v })
-}
+func (m *Map[K, V]) Insert(k K, v V) { mapInsert(m, k, v) }
 
 // Get returns the value corresponding to the key
-func (m *Map[K, V]) Get(k K) (out V, ok bool) {
-	m.RWith(func(mm map[K]V) { out, ok = mm[k] })
-	return
-}
+func (m *Map[K, V]) Get(k K) (out V, ok bool) { return mapGet(m, k) }
 
 // GetKeyValue returns the key-value pair corresponding to the supplied key.
-func (m *Map[K, V]) GetKeyValue(k K) (key K, value V, ok bool) {
-	m.RWith(func(mm map[K]V) { value, ok = mm[k] })
-	if ok {
-		return k, value, true
-	}
-	return
-}
+func (m *Map[K, V]) GetKeyValue(k K) (K, V, bool) { return getKeyValue(m, k) }
 
 // ContainsKey returns true if the map contains a value for the specified key
-func (m *Map[K, V]) ContainsKey(k K) (found bool) {
-	m.RWith(func(mm map[K]V) { _, found = mm[k] })
-	return
-}
+func (m *Map[K, V]) ContainsKey(k K) bool { return containsKey(m, k) }
 
 // Remove if the key exists, its value is returned to the caller and the key deleted from the map
-func (m *Map[K, V]) Remove(k K) (out V, ok bool) {
-	m.With(func(m *map[K]V) {
-		out, ok = (*m)[k]
-		if ok {
-			delete(*m, k)
-		}
-	})
-	return
-}
+func (m *Map[K, V]) Remove(k K) (V, bool) { return mapRemove(m, k) }
 
 // Delete deletes a key from the map
-func (m *Map[K, V]) Delete(k K) {
-	m.With(func(m *map[K]V) { delete(*m, k) })
-	return
-}
+func (m *Map[K, V]) Delete(k K) { mapDelete(m, k) }
 
 // Len returns the length of the map
-func (m *Map[K, V]) Len() (out int) {
-	m.RWith(func(mm map[K]V) { out = len(mm) })
-	return
-}
+func (m *Map[K, V]) Len() int { return mapLen(m) }
 
 // IsEmpty returns true if the map contains no elements.
-func (m *Map[K, V]) IsEmpty() (out bool) {
-	m.RWith(func(mm map[K]V) { out = len(mm) == 0 })
-	return
-}
+func (m *Map[K, V]) IsEmpty() bool { return mapIsEmpty(m) }
 
 // Each iterates each key/value of the map
-func (m *Map[K, V]) Each(clb func(K, V)) {
-	m.RWith(func(mm map[K]V) {
-		for k, v := range mm {
-			clb(k, v)
-		}
-	})
-}
+func (m *Map[K, V]) Each(clb func(K, V)) { mapEach(m, clb) }
 
 // Keys returns a slice of all keys
-func (m *Map[K, V]) Keys() (out []K) {
-	out = make([]K, 0)
-	m.RWith(func(mm map[K]V) {
-		for k := range mm {
-			out = append(out, k)
-		}
-	})
-	return
-}
+func (m *Map[K, V]) Keys() []K { return keys(m) }
 
 // Values returns a slice of all values
-func (m *Map[K, V]) Values() (out []V) {
-	out = make([]V, 0)
-	m.RWith(func(mm map[K]V) {
-		for _, v := range mm {
-			out = append(out, v)
-		}
-	})
-	return
-}
+func (m *Map[K, V]) Values() []V { return values(m) }
 
 // Clone returns a clone of the map
-func (m *Map[K, V]) Clone() (out map[K]V) {
-	m.RWith(func(mm map[K]V) {
-		out = make(map[K]V, len(mm))
-		for k, v := range mm {
-			out[k] = v
-		}
-	})
-	return
-}
+func (m *Map[K, V]) Clone() map[K]V { return mapClone(m) }
 
 //-----------------------------------------------------------------------------
 // Methods for Slice
@@ -535,6 +472,95 @@ func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
 			if keep(x) {
 				out = append(out, x)
 			}
+		}
+	})
+	return
+}
+
+func mapClear[M Locker[T], T map[K]V, K comparable, V any](m M) {
+	m.With(func(m *T) { clear(*m) })
+}
+
+func mapInsert[M Locker[T], T map[K]V, K comparable, V any](m M, k K, v V) {
+	m.With(func(m *T) { (*m)[k] = v })
+}
+
+func mapGet[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
+	m.RWith(func(mm T) { out, ok = mm[k] })
+	return
+}
+
+func getKeyValue[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (key K, value V, ok bool) {
+	m.RWith(func(mm T) { value, ok = mm[k] })
+	if ok {
+		return k, value, true
+	}
+	return
+}
+
+func containsKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found bool) {
+	m.RWith(func(mm T) { _, found = mm[k] })
+	return
+}
+
+func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
+	m.With(func(m *T) {
+		out, ok = (*m)[k]
+		if ok {
+			delete(*m, k)
+		}
+	})
+	return
+}
+
+func mapDelete[M Locker[T], T map[K]V, K comparable, V any](m M, k K) {
+	m.With(func(m *T) { delete(*m, k) })
+	return
+}
+
+func mapLen[M Locker[T], T map[K]V, K comparable, V any](m M) (out int) {
+	m.RWith(func(mm T) { out = len(mm) })
+	return
+}
+
+func mapIsEmpty[M Locker[T], T map[K]V, K comparable, V any](m M) (out bool) {
+	m.RWith(func(mm T) { out = len(mm) == 0 })
+	return
+}
+
+func mapEach[M Locker[T], T map[K]V, K comparable, V any](m M, clb func(K, V)) {
+	m.RWith(func(mm T) {
+		for k, v := range mm {
+			clb(k, v)
+		}
+	})
+}
+
+func keys[M Locker[T], T map[K]V, K comparable, V any](m M) (out []K) {
+	out = make([]K, 0)
+	m.RWith(func(mm T) {
+		for k := range mm {
+			out = append(out, k)
+		}
+	})
+	return
+}
+
+func values[M Locker[T], T map[K]V, K comparable, V any](m M) (out []V) {
+	out = make([]V, 0)
+	m.RWith(func(mm T) {
+		for _, v := range mm {
+			out = append(out, v)
+		}
+	})
+	return
+}
+
+func mapClone[M Locker[T], T map[K]V, K comparable, V any](m M) (out map[K]V) {
+	m.RWith(func(mm T) {
+		out = make(map[K]V, len(mm))
+		for k, v := range mm {
+			out[k] = v
 		}
 	})
 	return

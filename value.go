@@ -16,6 +16,10 @@ type Mutex[T any] struct{ baseMutex[T] }
 
 type RWMutex[T any] struct{ baseRWMutex[T] }
 
+type MapMutex[K comparable, V any] struct{ baseMutex[map[K]V] }
+
+type MapRWMutex[K comparable, V any] struct{ baseRWMutex[map[K]V] }
+
 type SliceMutex[T any] struct{ baseMutex[[]T] }
 
 type SliceRWMutex[T any] struct{ baseRWMutex[[]T] }
@@ -77,6 +81,34 @@ func (s *SliceRWMutex[T]) Get(i int) T                  { return get(s, i) }
 func (s *SliceRWMutex[T]) Remove(i int) T               { return remove(s, i) }
 func (s *SliceRWMutex[T]) Insert(i int, el T)           { insert(s, i, el) }
 func (s *SliceRWMutex[T]) Filter(keep func(T) bool) []T { return filter(s, keep) }
+
+func (m *MapMutex[K, V]) Clear()                       { mapClear(m) }
+func (m *MapMutex[K, V]) Insert(k K, v V)              { mapInsert(m, k, v) }
+func (m *MapMutex[K, V]) Get(k K) (V, bool)            { return mapGet(m, k) }
+func (m *MapMutex[K, V]) GetKeyValue(k K) (K, V, bool) { return getKeyValue(m, k) }
+func (m *MapMutex[K, V]) ContainsKey(k K) bool         { return containsKey(m, k) }
+func (m *MapMutex[K, V]) Remove(k K) (out V, ok bool)  { return mapRemove(m, k) }
+func (m *MapMutex[K, V]) Delete(k K)                   { mapDelete(m, k) }
+func (m *MapMutex[K, V]) Len() int                     { return mapLen(m) }
+func (m *MapMutex[K, V]) IsEmpty() (out bool)          { return mapIsEmpty(m) }
+func (m *MapMutex[K, V]) Each(clb func(K, V))          { mapEach(m, clb) }
+func (m *MapMutex[K, V]) Keys() []K                    { return keys(m) }
+func (m *MapMutex[K, V]) Values() []V                  { return values(m) }
+func (m *MapMutex[K, V]) Clone() map[K]V               { return mapClone(m) }
+
+func (m *MapRWMutex[K, V]) Clear()                       { mapClear(m) }
+func (m *MapRWMutex[K, V]) Insert(k K, v V)              { mapInsert(m, k, v) }
+func (m *MapRWMutex[K, V]) Get(k K) (V, bool)            { return mapGet(m, k) }
+func (m *MapRWMutex[K, V]) GetKeyValue(k K) (K, V, bool) { return getKeyValue(m, k) }
+func (m *MapRWMutex[K, V]) ContainsKey(k K) bool         { return containsKey(m, k) }
+func (m *MapRWMutex[K, V]) Remove(k K) (out V, ok bool)  { return mapRemove(m, k) }
+func (m *MapRWMutex[K, V]) Delete(k K)                   { mapDelete(m, k) }
+func (m *MapRWMutex[K, V]) Len() int                     { return mapLen(m) }
+func (m *MapRWMutex[K, V]) IsEmpty() (out bool)          { return mapIsEmpty(m) }
+func (m *MapRWMutex[K, V]) Each(clb func(K, V))          { mapEach(m, clb) }
+func (m *MapRWMutex[K, V]) Keys() []K                    { return keys(m) }
+func (m *MapRWMutex[K, V]) Values() []V                  { return values(m) }
+func (m *MapRWMutex[K, V]) Clone() map[K]V               { return mapClone(m) }
 
 func (m *NumberMutex[T]) Add(diff T) { add(m, diff) }
 func (m *NumberMutex[T]) Sub(diff T) { sub(m, diff) }
