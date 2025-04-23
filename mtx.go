@@ -212,54 +212,25 @@ func (m *base[M, T]) RUnlock() { m.Unlock() }
 func (m *base[M, T]) GetPointer() *T { return &m.v }
 
 // WithE provide a callback scope where the wrapped value can be safely used
-func (m *base[M, T]) WithE(clb func(v *T) error) error {
-	m.Lock()
-	defer m.Unlock()
-	return clb(&m.v)
-}
+func (m *base[M, T]) WithE(clb func(v *T) error) error { return withE(m, clb) }
 
 // With same as WithE but do return an error
-func (m *base[M, T]) With(clb func(v *T)) {
-	_ = m.WithE(func(tx *T) error {
-		clb(tx)
-		return nil
-	})
-}
+func (m *base[M, T]) With(clb func(v *T)) { with(m, clb) }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
-func (m *base[M, T]) RWithE(clb func(v T) error) error {
-	return m.WithE(func(v *T) error {
-		return clb(*v)
-	})
-}
+func (m *base[M, T]) RWithE(clb func(v T) error) error { return rWithE(m, clb) }
 
 // RWith same as RWithE but do not return an error
-func (m *base[M, T]) RWith(clb func(v T)) {
-	_ = m.RWithE(func(tx T) error {
-		clb(tx)
-		return nil
-	})
-}
+func (m *base[M, T]) RWith(clb func(v T)) { rWith(m, clb) }
 
 // Load safely gets the wrapped value
-func (m *base[M, T]) Load() (out T) {
-	m.RWith(func(v T) { out = v })
-	return out
-}
+func (m *base[M, T]) Load() (out T) { return load(m) }
 
 // Store a new value
-func (m *base[M, T]) Store(newV T) {
-	m.With(func(v *T) { *v = newV })
-}
+func (m *base[M, T]) Store(newV T) { store(m, newV) }
 
 // Swap set a new value and return the old value
-func (m *base[M, T]) Swap(newVal T) (old T) {
-	m.With(func(v *T) {
-		old = *v
-		*v = newVal
-	})
-	return
-}
+func (m *base[M, T]) Swap(newVal T) (old T) { return swap(m, newVal) }
 
 //-----------------------------------------------------------------------------
 
@@ -278,19 +249,10 @@ func (m *rwMtx[T]) RLock() { m.m.RLock() }
 func (m *rwMtx[T]) RUnlock() { m.m.RUnlock() }
 
 // RWithE provide a callback scope where the wrapped value can be safely used for Read only purposes
-func (m *rwMtx[T]) RWithE(clb func(v T) error) error {
-	m.RLock()
-	defer m.RUnlock()
-	return clb(m.v)
-}
+func (m *rwMtx[T]) RWithE(clb func(v T) error) error { return rWithE(m, clb) }
 
 // RWith same as RWithE but do not return an error
-func (m *rwMtx[T]) RWith(clb func(v T)) {
-	_ = m.RWithE(func(tx T) error {
-		clb(tx)
-		return nil
-	})
-}
+func (m *rwMtx[T]) RWith(clb func(v T)) { rWith(m, clb) }
 
 //-----------------------------------------------------------------------------
 // Methods for Mtx
@@ -505,3 +467,49 @@ func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
 
 // Sub subtract "diff" to the protected number
 func (n *Number[T]) Sub(diff T) { n.With(func(v *T) { *v -= diff }) }
+
+//-----------------------------------------------------------------------------
+// Generic functions
+
+func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
+	m.Lock()
+	defer m.Unlock()
+	return clb(m.GetPointer())
+}
+
+func with[M Locker[T], T any](m M, clb func(v *T)) {
+	_ = m.WithE(func(tx *T) error {
+		clb(tx)
+		return nil
+	})
+}
+
+func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
+	return m.WithE(func(v *T) error {
+		return clb(*v)
+	})
+}
+
+func rWith[M Locker[T], T any](m M, clb func(v T)) {
+	_ = m.RWithE(func(tx T) error {
+		clb(tx)
+		return nil
+	})
+}
+
+func load[M Locker[T], T any](m M) (out T) {
+	m.RWith(func(v T) { out = v })
+	return out
+}
+
+func store[M Locker[T], T any](m M, newV T) {
+	m.With(func(v *T) { *v = newV })
+}
+
+func swap[M Locker[T], T any](m M, newVal T) (old T) {
+	m.With(func(v *T) {
+		old = *v
+		*v = newVal
+	})
+	return
+}
