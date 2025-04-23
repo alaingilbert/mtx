@@ -24,11 +24,11 @@ package mtx
 
 import "sync"
 
-// Mutex alias type
-type Mutex = sync.Mutex
+// SyncMutex alias type
+type SyncMutex = sync.Mutex
 
-// RWMutex alias type
-type RWMutex = sync.RWMutex
+// SyncRWMutex alias type
+type SyncRWMutex = sync.RWMutex
 
 func toPtr[T any](v T) *T { return &v }
 
@@ -107,9 +107,9 @@ type ISlice[T any] interface {
 // INumber all numbers
 type INumber interface {
 	~float32 | ~float64 |
-		~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
-		~complex64 | ~complex128
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+	~complex64 | ~complex128
 }
 
 //-----------------------------------------------------------------------------
@@ -264,12 +264,12 @@ func (m *base[M, T]) Swap(newVal T) (old T) {
 //-----------------------------------------------------------------------------
 
 // generic helpers for sync.Mutex/sync.RWMutex
-type mtx[T any] struct{ *base[*Mutex, T] }
-type rwMtx[T any] struct{ *base[*RWMutex, T] }
+type mtx[T any] struct{ *base[*SyncMutex, T] }
+type rwMtx[T any] struct{ *base[*SyncRWMutex, T] }
 
 // newMtxPtr/newRWMtxPtr creates a new mtx/rwMtx
-func newMtxPtr[T any](v T) *mtx[T]     { return &mtx[T]{newBase(&Mutex{}, v)} }
-func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase(&RWMutex{}, v)} }
+func newMtxPtr[T any](v T) *mtx[T]     { return &mtx[T]{newBase(&SyncMutex{}, v)} }
+func newRWMtxPtr[T any](v T) *rwMtx[T] { return &rwMtx[T]{newBase(&SyncRWMutex{}, v)} }
 
 // RLock exposes the underlying sync.RWMutex RLock function
 func (m *rwMtx[T]) RLock() { m.m.RLock() }
