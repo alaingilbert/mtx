@@ -523,7 +523,7 @@ func each[M Locker[T], T []E, E any](m M, clb func(E)) {
 }
 
 func sliceClear[M Locker[T], T []E, E any](m M) {
-	m.With(func(v *T) { *v = nil; *v = make([]E, 0) })
+	m.With(func(v *T) { *v = make([]E, 0) })
 }
 
 func sliceAppend[M Locker[T], T []E, E any](m M, els ...E) {
