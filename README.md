@@ -84,3 +84,32 @@ func doSomethingInternally(c *container, el int) {
 - **Cleaner Code**: Protected data is explicitly grouped, making the design intent clear.
 
 By adopting `mtx`, you trade manual mutex management for a safer, more maintainable approach. Less room for mistakes, more time for solving real problems!
+
+-----
+
+### Usage examples
+
+```go
+type SomeStruct struct {
+    // Backed by sync.Mutex (does not need to be initialized)
+    Value1 mtx.Mutex[int]
+    // Backed by sync.RWMutex (does not need to be initialized)
+    Value2 mtx.RWMutex[int]
+    // Can be either backed by sync.Mutex or sync.RWMutex
+    // This needs to initialized with one of mtx.NewMtx / mtx.NewRWMtx
+    Value3 mtx.Mtx[int]
+    Value4 mtx.Mtx[int]
+}
+
+func main() {
+    s := SomeStruct {
+        Value2: mtx.NewRWMutex(2),
+        Value3: mtx.NewMtx(3),
+        Value4: mtx.NewRWMtx(4),
+    }
+    fmt.Println(s.Value1.Load()) // 0
+    fmt.Println(s.Value2.Load()) // 2
+    fmt.Println(s.Value3.Load()) // 3
+    fmt.Println(s.Value4.Load()) // 4
+}
+```
