@@ -107,9 +107,9 @@ type ISlice[T any] interface {
 // INumber all numbers
 type INumber interface {
 	~float32 | ~float64 |
-		~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
-		~complex64 | ~complex128
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+	~complex64 | ~complex128
 }
 
 //-----------------------------------------------------------------------------
@@ -381,10 +381,15 @@ type NumberMutex[T INumber] struct{ baseMutex[T] }
 
 type NumberRWMutex[T INumber] struct{ baseRWMutex[T] }
 
+func NewMutex[T any](v T) Mutex[T]                     { return Mutex[T]{baseMutex[T]{v: v}} }
+func NewRWMutex[T any](v T) RWMutex[T]                 { return RWMutex[T]{baseRWMutex[T]{v: v}} }
+func NewSliceMutex[T any](v []T) SliceMutex[T]         { return SliceMutex[T]{baseMutex[[]T]{v: v}} }
+func NewSliceRWMutex[T any](v []T) SliceRWMutex[T]     { return SliceRWMutex[T]{baseRWMutex[[]T]{v: v}} }
+func NewNumberMutex[T INumber](v T) NumberMutex[T]     { return NumberMutex[T]{baseMutex[T]{v: v}} }
+func NewNumberRWMutex[T INumber](v T) NumberRWMutex[T] { return NumberRWMutex[T]{baseRWMutex[T]{v: v}} }
 func NewMapMutex[K comparable, V any](m map[K]V) MapMutex[K, V] {
 	return MapMutex[K, V]{baseMutex[map[K]V]{v: m}}
 }
-
 func NewMapRWMutex[K comparable, V any](m map[K]V) MapRWMutex[K, V] {
 	return MapRWMutex[K, V]{baseRWMutex[map[K]V]{v: m}}
 }

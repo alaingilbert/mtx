@@ -1526,3 +1526,223 @@ func TestNewMapRWMutex(t *testing.T) {
 		})
 	})
 }
+
+func TestNewRWMutex(t *testing.T) {
+	t.Run("creates new RWMutex with given value", func(t *testing.T) {
+		initialValue := "test"
+		rwMutex := NewRWMutex(initialValue)
+
+		// Verify the initial value is stored correctly
+		rwMutex.RWith(func(v string) {
+			if v != initialValue {
+				t.Errorf("expected %q, got %q", initialValue, v)
+			}
+		})
+
+		// Test mutex operations
+		newValue := "updated"
+		rwMutex.With(func(v *string) {
+			*v = newValue
+		})
+
+		rwMutex.RWith(func(v string) {
+			if v != newValue {
+				t.Errorf("expected %q, got %q", newValue, v)
+			}
+		})
+	})
+}
+
+func TestNewSliceMutex(t *testing.T) {
+	t.Run("creates new SliceMutex with given slice", func(t *testing.T) {
+		initialSlice := []int{1, 2, 3}
+		sliceMutex := NewSliceMutex(initialSlice)
+
+		// Verify the initial slice is stored correctly
+		sliceMutex.RWith(func(v []int) {
+			if len(v) != len(initialSlice) {
+				t.Errorf("expected length %d, got %d", len(initialSlice), len(v))
+			}
+			for i, val := range v {
+				if val != initialSlice[i] {
+					t.Errorf("expected %d at index %d, got %d", initialSlice[i], i, val)
+				}
+			}
+		})
+
+		// Test mutex operations
+		sliceMutex.With(func(v *[]int) {
+			*v = append(*v, 4)
+		})
+
+		sliceMutex.RWith(func(v []int) {
+			if len(v) != 4 {
+				t.Errorf("expected length 4, got %d", len(v))
+			}
+			if v[3] != 4 {
+				t.Errorf("expected 4 at index 3, got %d", v[3])
+			}
+		})
+	})
+}
+
+func TestNewSliceRWMutex(t *testing.T) {
+	t.Run("creates new SliceRWMutex with given slice", func(t *testing.T) {
+		initialSlice := []string{"a", "b", "c"}
+		sliceRWMutex := NewSliceRWMutex(initialSlice)
+
+		// Verify the initial slice is stored correctly
+		sliceRWMutex.RWith(func(v []string) {
+			if len(v) != len(initialSlice) {
+				t.Errorf("expected length %d, got %d", len(initialSlice), len(v))
+			}
+			for i, val := range v {
+				if val != initialSlice[i] {
+					t.Errorf("expected %q at index %d, got %q", initialSlice[i], i, val)
+				}
+			}
+		})
+
+		// Test mutex operations
+		sliceRWMutex.With(func(v *[]string) {
+			*v = append(*v, "d")
+		})
+
+		sliceRWMutex.RWith(func(v []string) {
+			if len(v) != 4 {
+				t.Errorf("expected length 4, got %d", len(v))
+			}
+			if v[3] != "d" {
+				t.Errorf("expected \"d\" at index 3, got %q", v[3])
+			}
+		})
+	})
+}
+
+func TestNewNumberMutex(t *testing.T) {
+	t.Run("creates new NumberMutex with given number", func(t *testing.T) {
+		initialNumber := 42
+		numberMutex := NewNumberMutex(initialNumber)
+
+		// Verify the initial number is stored correctly
+		numberMutex.RWith(func(v int) {
+			if v != initialNumber {
+				t.Errorf("expected %d, got %d", initialNumber, v)
+			}
+		})
+
+		// Test mutex operations
+		numberMutex.With(func(v *int) {
+			*v += 10
+		})
+
+		numberMutex.RWith(func(v int) {
+			if v != 52 {
+				t.Errorf("expected 52, got %d", v)
+			}
+		})
+	})
+}
+
+func TestNewNumberRWMutex(t *testing.T) {
+	t.Run("creates new NumberRWMutex with given number", func(t *testing.T) {
+		initialNumber := 3.14
+		numberRWMutex := NewNumberRWMutex(initialNumber)
+
+		// Verify the initial number is stored correctly
+		numberRWMutex.RWith(func(v float64) {
+			if v != initialNumber {
+				t.Errorf("expected %f, got %f", initialNumber, v)
+			}
+		})
+
+		// Test mutex operations
+		numberRWMutex.With(func(v *float64) {
+			*v *= 2
+		})
+
+		numberRWMutex.RWith(func(v float64) {
+			if v != 6.28 {
+				t.Errorf("expected 6.28, got %f", v)
+			}
+		})
+	})
+}
+
+func TestNewMutex(t *testing.T) {
+	t.Run("creates new Mutex with given value", func(t *testing.T) {
+		initialValue := "initial"
+		mutex := NewMutex(initialValue)
+
+		// Verify the initial value is stored correctly
+		mutex.RWith(func(v string) {
+			if v != initialValue {
+				t.Errorf("expected %q, got %q", initialValue, v)
+			}
+		})
+
+		// Test mutex operations
+		newValue := "updated"
+		mutex.With(func(v *string) {
+			*v = newValue
+		})
+
+		mutex.RWith(func(v string) {
+			if v != newValue {
+				t.Errorf("expected %q, got %q", newValue, v)
+			}
+		})
+	})
+
+	t.Run("works with numeric types", func(t *testing.T) {
+		initialValue := 42
+		mutex := NewMutex(initialValue)
+
+		// Verify the initial value is stored correctly
+		mutex.RWith(func(v int) {
+			if v != initialValue {
+				t.Errorf("expected %d, got %d", initialValue, v)
+			}
+		})
+
+		// Test mutex operations
+		mutex.With(func(v *int) {
+			*v += 10
+		})
+
+		mutex.RWith(func(v int) {
+			if v != 52 {
+				t.Errorf("expected 52, got %d", v)
+			}
+		})
+	})
+
+	t.Run("works with struct types", func(t *testing.T) {
+		type testStruct struct {
+			Field1 string
+			Field2 int
+		}
+
+		initialValue := testStruct{"hello", 42}
+		mutex := NewMutex(initialValue)
+
+		// Verify the initial value is stored correctly
+		mutex.RWith(func(v testStruct) {
+			if v.Field1 != "hello" || v.Field2 != 42 {
+				t.Errorf("expected {hello 42}, got %v", v)
+			}
+		})
+
+		// Test mutex operations
+		mutex.With(func(v *testStruct) {
+			v.Field1 = "world"
+			v.Field2 = 100
+		})
+
+		mutex.RWith(func(v testStruct) {
+			if v.Field1 != "world" || v.Field2 != 100 {
+				t.Errorf("expected {world 100}, got %v", v)
+			}
+		})
+	})
+}
