@@ -1,112 +1,86 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/alaingilbert/mtx.svg)](https://pkg.go.dev/github.com/alaingilbert/mtx)
+**From Error-Prone to Safe: How `mtx` Transforms Unsafe Patterns**
 
-### Golang generic mutex helpers
+#### **The Problem: Manual Mutex Management**
+In Go, managing shared resources with mutexes is error-prone. Developers must remember to:
+1. **Lock** the mutex before accessing shared data.
+2. **Unlock** it afterward (often using `defer`).
+3. **Document** which fields are protected by the mutex.
+
+Here’s a typical example:
 
 ```go
-package main
+type SomeStruct struct {
+    // WARNING: mx protects the shared slice and the timestamp
+    // You shall never use the sharedSlice nor the timestamp without holding mx
+    mx          sync.Mutex
+    sharedSlice []int
+    timestamp   time.Time
+}
 
-import (
-    "fmt"
-    "github.com/alaingilbert/mtx"
-)
+func (s *SomeStruct) DoSomething(el int) {
+    s.mx.Lock()
+    defer s.mx.Unlock()
+    s.doSomethingInternally(el)
+}
 
-func main() {
-    // go run -race main.go
-    type Something struct {
-        Field1    string
-		SharedMap mtx.MapMutex[string, int]
-    }
-
-    something := Something{
-        Field1:    "this memory is not being shared, no mutex needed on Field1",
-		SharedMap: mtx.NewMapMutex(make(map[string]int)),
-    }
-
-    for i := 0; i < 100; i++ {
-        go something.SharedMap.Insert("a", i)
-    }
-
-    fmt.Println(something.SharedMap.Get("a"))
+func (s *SomeStruct) doSomethingInternally(el int) {
+    // WARNING: Caller must not forget to lock the shared resources before coming here
+    s.sharedSlice = append(s.sharedSlice, el)
+    s.timestamp = time.Now()
 }
 ```
 
+**Issues:**
+- Forgetting to lock/unlock can lead to race conditions.
+- Documentation (`WARNING` comments) is easy to miss or ignore.
+- The mutex and its protected fields are loosely coupled, making it hard to enforce safety.
+
+---
+
+#### **The Solution: `mtx` for Enforced Safety**
+The `mtx` library eliminates these pitfalls by:
+1. **Encapsulating the mutex and its protected data** in a single type (`mtx.Mutex[container]`).
+2. **Enforcing lock acquisition** before accessing the data via `With(func(c *container) { ... })`.
+
+Here’s the improved version:
+
 ```go
-package main
-
-import (
-    "fmt"
-    "github.com/alaingilbert/mtx"
-)
-
-func main() {
-    type Something struct {
-        Field1           string
-        SharedInt        mtx.Mtx[int]
-        SharedFloat64    mtx.Mtx[float64]
-        SharedMap1       mtx.Map[string, int]
-        SharedMap2       mtx.Map[string, int]
-        SharedSlice1     mtx.Slice[int]
-        SharedSlice2     mtx.Slice[int]
-        SharedSlicePtr1  *mtx.Slice[int]
-        SharedSlicePtr2  *mtx.Slice[int]
-    }
-    something := Something{
-        Field1:           "",
-        SharedInt:        mtx.NewMtx(0),                        // uses sync.Mutex
-        SharedFloat64:    mtx.NewRWMtx(0.0),                    // uses sync.RWMutex
-        SharedMap1:       mtx.NewMap(map[string]int{"a": 1}),   // uses sync.Mutex
-        SharedMap2:       mtx.NewRWMap(map[string]int{"b": 2}), // uses sync.RWMutex
-        SharedSlice1:     mtx.NewSlice([]int{1, 2, 3}),         // uses sync.Mutex
-        SharedSlice2:     mtx.NewRWSlice([]int{4, 5, 6}),       // uses sync.RWMutex
-        SharedSlicePtr1:  mtx.NewSlicePtr([]int{7, 8, 9}),      // uses sync.Mutex
-        SharedSlicePtr2:  mtx.NewRWSlicePtr([]int{10, 11, 12}), // uses sync.RWMutex
-    }
-    fmt.Println(something)
-}
-```
-
-## Goal
-
-It is not unusual in Go to see code like this,  
-where the user has to not forget to use the mutex, and has to not make a mistake with the unlocking mechanism.
-```go
-// NOTE: This code block is NOT an example on how to use the library!
-
-type Something struct {
-    SharedMapMtx sync.RWMutex
-    SharedMap    map[string]int
+type SomeStruct struct {
+    // No longer need to explain what is being protected, this is self-explanatory
+    inner mtx.Mutex[container]
 }
 
-func someFn(s Something) {
-    s.SharedMapMtx.Lock()
-    defer s.SharedMapMtx.Unlock()
-    s.SharedMap["foo"] = 1
-}
-```
-
-This library ensure that a field which is protected by a mutex will be used properly without compromising on flexibility.
-```go
-type Something struct {
-    SharedMap    mtx.Map[string, int]
+type container struct {
+    sharedSlice []int
+    timestamp   time.Time
 }
 
-// This is the recommended way of setting a key
-func someFn(s *Something) {
-    s.SharedMap.Insert("foo", 1)
-}
-
-// This is also good
-func someOtherFn(s *Something) {
-    s.SharedMap.With(func(sharedMapPtr *map[string]int) {
-        (*sharedMapPtr)["foo"] = 1
+func (s *SomeStruct) DoSomething(el int) {
+    // This construct makes it much harder to accidentally forget to release the lock
+    s.inner.With(func(c *container) {
+        doSomethingInternally(c, el)
     })
 }
 
-// But it can be as flexible as needed
-func anotherOneFn(s *Something) {
-    s.SharedMap.Lock()
-    defer s.SharedMap.Unlock()
-    sharedMapPtr := s.SharedMap.GetPointer()
-    (*sharedMapPtr)["foo"] = 1
+// It is not possible to come here without having a pointer to container,
+// which you can only get by holding the lock.
+// So the caller cannot forget to lock the resources before calling this function. 
+func doSomethingInternally(c *container, el int) {
+    (*c).sharedSlice = append((*c).sharedSlice, el)
+    (*c).timestamp = time.Now()
 }
 ```
+
+**Benefits:**
+- **No More Forgotten Locks**: The `With` method ensures the lock is held for the duration of the callback.
+- **Self-Documenting**: The `container` type clearly groups protected fields, eliminating the need for `WARNING` comments.
+- **Compiler-Enforced Safety**: The `doSomethingInternally` function can’t be called without holding the lock, as `c *container` is only accessible with the mutex being acquired.
+
+---
+
+#### **Key Takeaways**
+- **Eliminate Boilerplate**: No more manual `Lock()`/`Unlock()` calls.
+- **Reduce Human Error**: The compiler enforces correct usage.
+- **Cleaner Code**: Protected data is explicitly grouped, making the design intent clear.
+
+By adopting `mtx`, you trade manual mutex management for a safer, more maintainable approach. Less room for mistakes, more time for solving real problems!
