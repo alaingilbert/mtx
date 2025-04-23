@@ -452,7 +452,10 @@ func get[M Locker[T], T []E, E any](m M, i int) (out E) {
 }
 
 func remove[M Locker[T], T []E, E any](m M, i int) (out E) {
-	m.With(func(v *T) { out, *v = (*v)[i], (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
+	m.With(func(v *T) {
+		out = (*v)[i]
+		*v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])]
+	})
 	return
 }
 
