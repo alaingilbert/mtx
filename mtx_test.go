@@ -1493,3 +1493,36 @@ func TestNumberRWMutex_ConcurrentOperations(t *testing.T) {
 		t.Errorf("expected 0, got %d", n.Load())
 	}
 }
+
+func TestNewMapMutex(t *testing.T) {
+	t.Run("creates new MapMutex with given map", func(t *testing.T) {
+		input := map[string]int{"a": 1, "b": 2}
+		m := NewMapMutex(input)
+
+		// Verify the internal map matches input
+		m.RWith(func(v map[string]int) {
+			if len(v) != 2 {
+				t.Errorf("expected length 2, got %d", len(v))
+			}
+			if v["a"] != 1 || v["b"] != 2 {
+				t.Errorf("map contents don't match input")
+			}
+		})
+	})
+}
+
+func TestNewMapRWMutex(t *testing.T) {
+	t.Run("creates new MapRWMutex with given map", func(t *testing.T) {
+		input := map[int]string{1: "one", 2: "two"}
+		m := NewMapRWMutex(input)
+
+		m.RWith(func(v map[int]string) {
+			if len(v) != 2 {
+				t.Errorf("expected length 2, got %d", len(v))
+			}
+			if v[1] != "one" || v[2] != "two" {
+				t.Errorf("map contents don't match input")
+			}
+		})
+	})
+}
