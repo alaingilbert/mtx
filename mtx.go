@@ -366,107 +366,54 @@ func (m *Map[K, V]) Clone() (out map[K]V) {
 // Methods for Slice
 
 // Each iterates each values of the slice
-func (s *Slice[T]) Each(clb func(T)) {
-	s.RWith(func(v []T) {
-		for _, e := range v {
-			clb(e)
-		}
-	})
-}
+func (s *Slice[T]) Each(clb func(T)) { each(s, clb) }
 
 // Clear clears the slice, removing all values
-func (s *Slice[T]) Clear() {
-	s.With(func(v *[]T) { *v = nil; *v = make([]T, 0) })
-}
+func (s *Slice[T]) Clear() { sliceClear(s) }
 
 // Append appends elements at the end of the slice
-func (s *Slice[T]) Append(els ...T) {
-	s.With(func(v *[]T) { *v = append(*v, els...) })
-}
+func (s *Slice[T]) Append(els ...T) { sliceAppend(s, els...) }
 
 // Unshift insert new element at beginning of the slice
-func (s *Slice[T]) Unshift(el T) {
-	s.With(func(v *[]T) { *v = append([]T{el}, *v...) })
-}
+func (s *Slice[T]) Unshift(el T) { unshift(s, el) }
 
 // Shift (pop front) remove and return the first element from the slice
-func (s *Slice[T]) Shift() (out T) {
-	s.With(func(v *[]T) { out, *v = (*v)[0], (*v)[1:] })
-	return
-}
+func (s *Slice[T]) Shift() T { return shift(s) }
 
 // Pop remove and return the last element from the slice
-func (s *Slice[T]) Pop() (out T) {
-	s.With(func(v *[]T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
-	return
-}
+func (s *Slice[T]) Pop() T { return pop(s) }
 
 // Clone returns a clone of the slice
-func (s *Slice[T]) Clone() (out []T) {
-	s.RWith(func(v []T) {
-		out = make([]T, len(v))
-		copy(out, v)
-	})
-	return
-}
+func (s *Slice[T]) Clone() []T { return clone(s) }
 
 // Len returns the length of the slice
-func (s *Slice[T]) Len() (out int) {
-	s.RWith(func(v []T) { out = len(v) })
-	return
-}
+func (s *Slice[T]) Len() int { return sliceLen(s) }
 
 // IsEmpty returns true if the map contains no elements.
-func (s *Slice[T]) IsEmpty() (out bool) {
-	s.RWith(func(v []T) { out = len(v) == 0 })
-	return
-}
+func (s *Slice[T]) IsEmpty() bool { return isEmpty(s) }
 
 // Get gets the element at index i
-func (s *Slice[T]) Get(i int) (out T) {
-	s.RWith(func(v []T) { out = (v)[i] })
-	return
-}
+func (s *Slice[T]) Get(i int) T { return get(s, i) }
 
 // Remove removes the element at position i within the slice,
 // shifting all elements after it to the left
 // Panics if index is out of bounds
-func (s *Slice[T]) Remove(i int) (out T) {
-	s.With(func(v *[]T) { out, *v = (*v)[i], (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
-	return
-}
+func (s *Slice[T]) Remove(i int) T { return remove(s, i) }
 
 // Insert insert a new element at index i
-func (s *Slice[T]) Insert(i int, el T) {
-	s.With(func(v *[]T) {
-		var zero T
-		*v = append(*v, zero)
-		copy((*v)[i+1:], (*v)[i:])
-		(*v)[i] = el
-	})
-}
+func (s *Slice[T]) Insert(i int, el T) { insert(s, i, el) }
 
 // Filter returns a new slice of the elements that satisfy the "keep" predicate callback
-func (s *Slice[T]) Filter(keep func(el T) bool) (out []T) {
-	s.RWith(func(v []T) {
-		out = make([]T, 0)
-		for _, x := range v {
-			if keep(x) {
-				out = append(out, x)
-			}
-		}
-	})
-	return
-}
+func (s *Slice[T]) Filter(keep func(T) bool) []T { return filter(s, keep) }
 
 //-----------------------------------------------------------------------------
 // Methods for Number
 
 // Add adds "diff" to the protected number
-func (n *Number[T]) Add(diff T) { n.With(func(v *T) { *v += diff }) }
+func (n *Number[T]) Add(diff T) { add(n, diff) }
 
 // Sub subtract "diff" to the protected number
-func (n *Number[T]) Sub(diff T) { n.With(func(v *T) { *v -= diff }) }
+func (n *Number[T]) Sub(diff T) { sub(n, diff) }
 
 //-----------------------------------------------------------------------------
 // Generic functions
@@ -513,3 +460,86 @@ func swap[M Locker[T], T any](m M, newVal T) (old T) {
 	})
 	return
 }
+
+func each[M Locker[T], T []E, E any](m M, clb func(E)) {
+	m.RWith(func(v T) {
+		for _, e := range v {
+			clb(e)
+		}
+	})
+}
+
+func sliceClear[M Locker[T], T []E, E any](m M) {
+	m.With(func(v *T) { *v = nil; *v = make([]E, 0) })
+}
+
+func sliceAppend[M Locker[T], T []E, E any](m M, els ...E) {
+	m.With(func(v *T) { *v = append(*v, els...) })
+}
+
+func unshift[M Locker[T], T []E, E any](m M, el E) {
+	m.With(func(v *T) { *v = append([]E{el}, *v...) })
+}
+
+func shift[M Locker[T], T []E, E any](m M) (out E) {
+	m.With(func(v *T) { out, *v = (*v)[0], (*v)[1:] })
+	return
+}
+
+func pop[M Locker[T], T []E, E any](m M) (out E) {
+	m.With(func(v *T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
+	return
+}
+
+func clone[M Locker[T], T []E, E any](m M) (out []E) {
+	m.RWith(func(v T) {
+		out = make([]E, len(v))
+		copy(out, v)
+	})
+	return
+}
+
+func sliceLen[M Locker[T], T []E, E any](m M) (out int) {
+	m.RWith(func(v T) { out = len(v) })
+	return
+}
+
+func isEmpty[M Locker[T], T []E, E any](m M) (out bool) {
+	m.RWith(func(v T) { out = len(v) == 0 })
+	return
+}
+
+func get[M Locker[T], T []E, E any](m M, i int) (out E) {
+	m.RWith(func(v T) { out = (v)[i] })
+	return
+}
+
+func remove[M Locker[T], T []E, E any](m M, i int) (out E) {
+	m.With(func(v *T) { out, *v = (*v)[i], (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
+	return
+}
+
+func insert[M Locker[T], T []E, E any](m M, i int, el E) {
+	m.With(func(v *T) {
+		var zero E
+		*v = append(*v, zero)
+		copy((*v)[i+1:], (*v)[i:])
+		(*v)[i] = el
+	})
+}
+
+func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
+	m.RWith(func(v T) {
+		out = make([]E, 0)
+		for _, x := range v {
+			if keep(x) {
+				out = append(out, x)
+			}
+		}
+	})
+	return
+}
+
+func add[M Locker[T], T INumber](m M, diff T) { m.With(func(v *T) { *v += diff }) }
+
+func sub[M Locker[T], T INumber](m M, diff T) { m.With(func(v *T) { *v -= diff }) }
