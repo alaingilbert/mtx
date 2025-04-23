@@ -381,6 +381,14 @@ type NumberMutex[T INumber] struct{ baseMutex[T] }
 
 type NumberRWMutex[T INumber] struct{ baseRWMutex[T] }
 
+func NewMapMutex[K comparable, V any](m map[K]V) MapMutex[K, V] {
+	return MapMutex[K, V]{baseMutex[map[K]V]{v: m}}
+}
+
+func NewMapRWMutex[K comparable, V any](m map[K]V) MapRWMutex[K, V] {
+	return MapRWMutex[K, V]{baseRWMutex[map[K]V]{v: m}}
+}
+
 func (m *baseMutex[T]) Lock()                            { m.m.Lock() }
 func (m *baseMutex[T]) Unlock()                          { m.m.Unlock() }
 func (m *baseMutex[T]) RLock()                           { m.Lock() }

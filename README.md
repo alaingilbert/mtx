@@ -14,12 +14,12 @@ func main() {
     // go run -race main.go
     type Something struct {
         Field1    string
-        SharedMap mtx.Map[string, int]
+		SharedMap mtx.MapMutex[string, int]
     }
 
     something := Something{
         Field1:    "this memory is not being shared, no mutex needed on Field1",
-        SharedMap: mtx.NewRWMap[string, int](nil),
+		SharedMap: mtx.NewMapMutex(make(map[string]int)),
     }
 
     for i := 0; i < 100; i++ {
