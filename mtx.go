@@ -481,15 +481,18 @@ func (m *RWMutexNumber[T]) Sub(diff T)                     { sub(m, diff) }
 //-----------------------------------------------------------------------------
 // Generic functions
 
+func getPointer[M Locker[T], T any](m M) *T {
+	return m.GetPointer()
+}
 func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
 	m.Lock()
 	defer m.Unlock()
-	return clb(m.GetPointer())
+	return clb(getPointer(m))
 }
 func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
 	m.RLock()
 	defer m.RUnlock()
-	return clb(*m.GetPointer())
+	return clb(*getPointer(m))
 }
 func with[M Locker[T], T any](m M, clb func(v *T)) {
 	_ = withE(m, func(tx *T) error { clb(tx); return nil })
