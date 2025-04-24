@@ -60,48 +60,48 @@ type Locker[T any] interface {
 	Load() T
 	RLock()
 	RUnlock()
-	RWith(clb func(v T))
-	RWithE(clb func(v T) error) error
-	Store(v T)
-	Swap(newVal T) (old T)
-	With(clb func(v *T))
-	WithE(clb func(v *T) error) error
+	RWith(func(T))
+	RWithE(func(T) error) error
+	Store(T)
+	Swap(T) T
+	With(func(*T))
+	WithE(func(*T) error) error
 }
 
 // IMap is the interface that Map implements
 type IMap[K comparable, V any] interface {
 	Locker[map[K]V]
 	Clear()
-	Clone() (out map[K]V)
-	ContainsKey(k K) (found bool)
-	Delete(k K)
-	Each(clb func(K, V))
-	Get(k K) (out V, ok bool)
-	GetKeyValue(k K) (key K, value V, ok bool)
-	Insert(k K, v V)
+	Clone() map[K]V
+	ContainsKey(K) bool
+	Delete(K)
+	Each(func(K, V))
+	Get(K) (V, bool)
+	GetKeyValue(K) (K, V, bool)
+	Insert(K, V)
 	IsEmpty() bool
-	Keys() (out []K)
-	Len() (out int)
-	Remove(k K) (out V, ok bool)
-	Values() (out []V)
+	Keys() []K
+	Len() int
+	Remove(K) (V, bool)
+	Values() []V
 }
 
 // ISlice is the interface that Slice implements
 type ISlice[T any] interface {
 	Locker[[]T]
-	Append(els ...T)
+	Append(...T)
 	Clear()
-	Clone() (out []T)
-	Each(clb func(T))
+	Clone() []T
+	Each(func(T))
 	Filter(func(T) bool) []T
-	Get(i int) (out T)
-	Insert(i int, el T)
+	Get(int) T
+	Insert(int, T)
 	IsEmpty() bool
-	Len() (out int)
-	Pop() (out T)
-	Remove(i int) (out T)
-	Shift() (out T)
-	Unshift(el T)
+	Len() int
+	Pop() T
+	Remove(int) T
+	Shift() T
+	Unshift(T)
 }
 
 // INumber all numbers
@@ -486,36 +486,30 @@ func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
 	defer m.Unlock()
 	return clb(m.GetPointer())
 }
-
 func with[M Locker[T], T any](m M, clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error {
 		clb(tx)
 		return nil
 	})
 }
-
 func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
 	return m.WithE(func(v *T) error {
 		return clb(*v)
 	})
 }
-
 func rWith[M Locker[T], T any](m M, clb func(v T)) {
 	_ = m.RWithE(func(tx T) error {
 		clb(tx)
 		return nil
 	})
 }
-
 func load[M Locker[T], T any](m M) (out T) {
 	m.RWith(func(v T) { out = v })
 	return out
 }
-
 func store[M Locker[T], T any](m M, newV T) {
 	m.With(func(v *T) { *v = newV })
 }
-
 func swap[M Locker[T], T any](m M, newVal T) (old T) {
 	m.With(func(v *T) {
 		old = *v
@@ -523,7 +517,6 @@ func swap[M Locker[T], T any](m M, newVal T) (old T) {
 	})
 	return
 }
-
 func each[M Locker[T], T []E, E any](m M, clb func(E)) {
 	m.RWith(func(v T) {
 		for _, e := range v {
@@ -531,29 +524,23 @@ func each[M Locker[T], T []E, E any](m M, clb func(E)) {
 		}
 	})
 }
-
 func sliceClear[M Locker[T], T []E, E any](m M) {
 	m.With(func(v *T) { *v = make([]E, 0) })
 }
-
 func sliceAppend[M Locker[T], T []E, E any](m M, els ...E) {
 	m.With(func(v *T) { *v = append(*v, els...) })
 }
-
 func unshift[M Locker[T], T []E, E any](m M, el E) {
 	m.With(func(v *T) { *v = append([]E{el}, *v...) })
 }
-
 func shift[M Locker[T], T []E, E any](m M) (out E) {
 	m.With(func(v *T) { out, *v = (*v)[0], (*v)[1:] })
 	return
 }
-
 func pop[M Locker[T], T []E, E any](m M) (out E) {
 	m.With(func(v *T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
-
 func clone[M Locker[T], T []E, E any](m M) (out []E) {
 	m.RWith(func(v T) {
 		out = make([]E, len(v))
@@ -561,22 +548,18 @@ func clone[M Locker[T], T []E, E any](m M) (out []E) {
 	})
 	return
 }
-
 func sliceLen[M Locker[T], T []E, E any](m M) (out int) {
 	m.RWith(func(v T) { out = len(v) })
 	return
 }
-
 func isEmpty[M Locker[T], T []E, E any](m M) (out bool) {
 	m.RWith(func(v T) { out = len(v) == 0 })
 	return
 }
-
 func get[M Locker[T], T []E, E any](m M, i int) (out E) {
 	m.RWith(func(v T) { out = (v)[i] })
 	return
 }
-
 func remove[M Locker[T], T []E, E any](m M, i int) (out E) {
 	m.With(func(v *T) {
 		out = (*v)[i]
@@ -584,7 +567,6 @@ func remove[M Locker[T], T []E, E any](m M, i int) (out E) {
 	})
 	return
 }
-
 func insert[M Locker[T], T []E, E any](m M, i int, el E) {
 	m.With(func(v *T) {
 		var zero E
@@ -593,7 +575,6 @@ func insert[M Locker[T], T []E, E any](m M, i int, el E) {
 		(*v)[i] = el
 	})
 }
-
 func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
 	m.RWith(func(v T) {
 		out = make([]E, 0)
@@ -605,20 +586,16 @@ func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
 	})
 	return
 }
-
 func mapClear[M Locker[T], T map[K]V, K comparable, V any](m M) {
 	m.With(func(m *T) { clear(*m) })
 }
-
 func mapInsert[M Locker[T], T map[K]V, K comparable, V any](m M, k K, v V) {
 	m.With(func(m *T) { (*m)[k] = v })
 }
-
 func mapGet[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
 	m.RWith(func(mm T) { out, ok = mm[k] })
 	return
 }
-
 func getKeyValue[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (key K, value V, ok bool) {
 	m.RWith(func(mm T) { value, ok = mm[k] })
 	if ok {
@@ -626,12 +603,10 @@ func getKeyValue[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (key K, 
 	}
 	return
 }
-
 func containsKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found bool) {
 	m.RWith(func(mm T) { _, found = mm[k] })
 	return
 }
-
 func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
 	m.With(func(m *T) {
 		out, ok = (*m)[k]
@@ -641,22 +616,18 @@ func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok
 	})
 	return
 }
-
 func mapDelete[M Locker[T], T map[K]V, K comparable, V any](m M, k K) {
 	m.With(func(m *T) { delete(*m, k) })
 	return
 }
-
 func mapLen[M Locker[T], T map[K]V, K comparable, V any](m M) (out int) {
 	m.RWith(func(mm T) { out = len(mm) })
 	return
 }
-
 func mapIsEmpty[M Locker[T], T map[K]V, K comparable, V any](m M) (out bool) {
 	m.RWith(func(mm T) { out = len(mm) == 0 })
 	return
 }
-
 func mapEach[M Locker[T], T map[K]V, K comparable, V any](m M, clb func(K, V)) {
 	m.RWith(func(mm T) {
 		for k, v := range mm {
@@ -664,7 +635,6 @@ func mapEach[M Locker[T], T map[K]V, K comparable, V any](m M, clb func(K, V)) {
 		}
 	})
 }
-
 func keys[M Locker[T], T map[K]V, K comparable, V any](m M) (out []K) {
 	out = make([]K, 0)
 	m.RWith(func(mm T) {
@@ -674,7 +644,6 @@ func keys[M Locker[T], T map[K]V, K comparable, V any](m M) (out []K) {
 	})
 	return
 }
-
 func values[M Locker[T], T map[K]V, K comparable, V any](m M) (out []V) {
 	out = make([]V, 0)
 	m.RWith(func(mm T) {
@@ -684,7 +653,6 @@ func values[M Locker[T], T map[K]V, K comparable, V any](m M) (out []V) {
 	})
 	return
 }
-
 func mapClone[M Locker[T], T map[K]V, K comparable, V any](m M) (out map[K]V) {
 	m.RWith(func(mm T) {
 		out = make(map[K]V, len(mm))
@@ -694,7 +662,5 @@ func mapClone[M Locker[T], T map[K]V, K comparable, V any](m M) (out map[K]V) {
 	})
 	return
 }
-
 func add[M Locker[T], T INumber](m M, diff T) { m.With(func(v *T) { *v += diff }) }
-
 func sub[M Locker[T], T INumber](m M, diff T) { m.With(func(v *T) { *v -= diff }) }
