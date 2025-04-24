@@ -1850,10 +1850,7 @@ func TestBase_RWithE(t *testing.T) {
 
 func TestBaseMutex_WithE(t *testing.T) {
 	t.Run("successful callback", func(t *testing.T) {
-		bm := &baseMutex[int]{
-			m: sync.Mutex{},
-			v: 42,
-		}
+		bm := NewMutex(42)
 
 		err := bm.WithE(func(v *int) error {
 			*v = 100
@@ -1870,10 +1867,7 @@ func TestBaseMutex_WithE(t *testing.T) {
 	})
 
 	t.Run("callback returns error", func(t *testing.T) {
-		bm := &baseMutex[int]{
-			m: sync.Mutex{},
-			v: 42,
-		}
+		bm := NewMutex(42)
 
 		expectedErr := errors.New("test error")
 		err := bm.WithE(func(v *int) error {
@@ -1888,10 +1882,7 @@ func TestBaseMutex_WithE(t *testing.T) {
 
 func TestBaseMutex_RWithE(t *testing.T) {
 	t.Run("successful callback", func(t *testing.T) {
-		bm := &baseMutex[int]{
-			m: sync.Mutex{},
-			v: 42,
-		}
+		bm := NewMutex(42)
 
 		err := bm.RWithE(func(v int) error {
 			if v != 42 {
@@ -1906,10 +1897,7 @@ func TestBaseMutex_RWithE(t *testing.T) {
 	})
 
 	t.Run("callback returns error", func(t *testing.T) {
-		bm := &baseMutex[int]{
-			m: sync.Mutex{},
-			v: 42,
-		}
+		bm := NewMutex(42)
 
 		expectedErr := errors.New("test error")
 		err := bm.RWithE(func(v int) error {
@@ -1924,10 +1912,7 @@ func TestBaseMutex_RWithE(t *testing.T) {
 
 func TestBaseRWMutex_WithE(t *testing.T) {
 	t.Run("successful callback", func(t *testing.T) {
-		brw := &baseRWMutex[int]{
-			m: sync.RWMutex{},
-			v: 42,
-		}
+		brw := NewRWMutex(42)
 
 		err := brw.WithE(func(v *int) error {
 			*v = 100
@@ -1944,10 +1929,7 @@ func TestBaseRWMutex_WithE(t *testing.T) {
 	})
 
 	t.Run("callback returns error", func(t *testing.T) {
-		brw := &baseRWMutex[int]{
-			m: sync.RWMutex{},
-			v: 42,
-		}
+		brw := NewRWMutex(42)
 
 		expectedErr := errors.New("test error")
 		err := brw.WithE(func(v *int) error {
@@ -1962,10 +1944,7 @@ func TestBaseRWMutex_WithE(t *testing.T) {
 
 func TestBaseRWMutex_RWithE(t *testing.T) {
 	t.Run("successful callback", func(t *testing.T) {
-		brw := &baseRWMutex[int]{
-			m: sync.RWMutex{},
-			v: 42,
-		}
+		brw := NewRWMutex(42)
 
 		err := brw.RWithE(func(v int) error {
 			if v != 42 {
@@ -1980,10 +1959,7 @@ func TestBaseRWMutex_RWithE(t *testing.T) {
 	})
 
 	t.Run("callback returns error", func(t *testing.T) {
-		brw := &baseRWMutex[int]{
-			m: sync.RWMutex{},
-			v: 42,
-		}
+		brw := NewRWMutex(42)
 
 		expectedErr := errors.New("test error")
 		err := brw.RWithE(func(v int) error {
@@ -1998,13 +1974,7 @@ func TestBaseRWMutex_RWithE(t *testing.T) {
 
 func TestRWMtx_RWithE(t *testing.T) {
 	t.Run("successful callback", func(t *testing.T) {
-		rw := &rwMtx[int]{
-			base: &base[*SyncRWMutex, int]{
-				m: &SyncRWMutex{},
-				v: 42,
-			},
-		}
-
+		rw := NewRWMtx(42)
 		err := rw.RWithE(func(v int) error {
 			if v != 42 {
 				t.Errorf("expected value to be 42, got %d", v)
@@ -2018,12 +1988,7 @@ func TestRWMtx_RWithE(t *testing.T) {
 	})
 
 	t.Run("callback returns error", func(t *testing.T) {
-		rw := &rwMtx[int]{
-			base: &base[*SyncRWMutex, int]{
-				m: &SyncRWMutex{},
-				v: 42,
-			},
-		}
+		rw := NewRWMtx(42)
 
 		expectedErr := errors.New("test error")
 		err := rw.RWithE(func(v int) error {
@@ -2036,12 +2001,7 @@ func TestRWMtx_RWithE(t *testing.T) {
 	})
 
 	t.Run("concurrent read operations", func(t *testing.T) {
-		rw := &rwMtx[int]{
-			base: &base[*SyncRWMutex, int]{
-				m: &SyncRWMutex{},
-				v: 42,
-			},
-		}
+		rw := NewRWMtx(42)
 
 		// Simulate concurrent reads
 		var wg sync.WaitGroup

@@ -25,7 +25,7 @@ package mtx
 import "sync"
 
 type Locker[T any] interface { // Locker is the interface that each mtx types implements (Mtx/Map/Slice/Number)
-	sync.Locker
+	syncLocker
 	GetPointer() *T
 	Load() T
 	RLock()
@@ -75,10 +75,23 @@ type INumber interface { // INumber all numbers
 	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
 	~complex64 | ~complex128
 }
-type SyncMutex = sync.Mutex                                         // SyncMutex alias type
-type SyncRWMutex = sync.RWMutex                                     // SyncRWMutex alias type
-type mtx[T any] struct{ *base[*SyncMutex, T] }                      // sync.Mutex wrapper
-type rwMtx[T any] struct{ *base[*SyncRWMutex, T] }                  // sync.RWMutex wrapper
+type base[M syncLocker, T any] struct {
+	m M
+	v T
+}
+type baseMutex[T any] struct {
+	m syncMutex
+	v T
+}
+type baseRWMutex[T any] struct {
+	m syncRWMutex
+	v T
+}
+type syncLocker = sync.Locker                                       // syncLocker alias type
+type syncMutex = sync.Mutex                                         // syncMutex alias type
+type syncRWMutex = sync.RWMutex                                     // syncRWMutex alias type
+type mtx[T any] struct{ *base[*syncMutex, T] }                      // sync.Mutex wrapper
+type rwMtx[T any] struct{ *base[*syncRWMutex, T] }                  // sync.RWMutex wrapper
 type Mtx[T any] struct{ Locker[T] }                                 // Mutex-protected value
 type Map[K comparable, V any] struct{ Locker[map[K]V] }             // Mutex-protected map
 type Slice[V any] struct{ Locker[[]V] }                             // Mutex-protected slice
@@ -91,18 +104,6 @@ type MutexSlice[T any] struct{ baseMutex[[]T] }                     // Mutex-pro
 type RWMutexSlice[T any] struct{ baseRWMutex[[]T] }                 // RWMutex-protected slice
 type MutexNumber[T INumber] struct{ baseMutex[T] }                  // Mutex-protected number
 type RWMutexNumber[T INumber] struct{ baseRWMutex[T] }              // RWMutex-protected number
-type base[M sync.Locker, T any] struct {
-	m M
-	v T
-}
-type baseMutex[T any] struct {
-	m sync.Mutex
-	v T
-}
-type baseRWMutex[T any] struct {
-	m sync.RWMutex
-	v T
-}
 
 // Compile time checks to ensure types satisfies interfaces
 var _ Locker[any] = (*Mtx[any])(nil)
@@ -111,15 +112,15 @@ var _ Locker[any] = (*RWMutex[any])(nil)
 var _ Locker[int] = (*Number[int])(nil)
 var _ Locker[int] = (*MutexNumber[int])(nil)
 var _ Locker[int] = (*RWMutexNumber[int])(nil)
-var _ LockerMap[int, int] = (*Map[int, int])(nil)
-var _ LockerMap[int, int] = (*MutexMap[int, int])(nil)
-var _ LockerMap[int, int] = (*RWMutexMap[int, int])(nil)
+var _ LockerMap[int, any] = (*Map[int, any])(nil)
+var _ LockerMap[int, any] = (*MutexMap[int, any])(nil)
+var _ LockerMap[int, any] = (*RWMutexMap[int, any])(nil)
 var _ LockerSlice[any] = (*Slice[any])(nil)
 var _ LockerSlice[any] = (*MutexSlice[any])(nil)
 var _ LockerSlice[any] = (*RWMutexSlice[any])(nil)
 var _ Locker[any] = (*baseMutex[any])(nil)
 var _ Locker[any] = (*baseRWMutex[any])(nil)
-var _ Locker[any] = (*base[sync.Locker, any])(nil)
+var _ Locker[any] = (*base[syncLocker, any])(nil)
 
 func NewMutexMap[K comparable, V any](m map[K]V) MutexMap[K, V] {
 	return MutexMap[K, V]{baseMutex[map[K]V]{v: defaultMap(m)}}
@@ -127,9 +128,9 @@ func NewMutexMap[K comparable, V any](m map[K]V) MutexMap[K, V] {
 func NewRWMutexMap[K comparable, V any](m map[K]V) RWMutexMap[K, V] {
 	return RWMutexMap[K, V]{baseRWMutex[map[K]V]{v: defaultMap(m)}}
 }
-func newBase[M sync.Locker, T any](m M, v T) *base[M, T]    { return &base[M, T]{m, v} }                       // newBase creates a new base object
-func newMtxPtr[T any](v T) *mtx[T]                          { return &mtx[T]{newBase(&SyncMutex{}, v)} }       // newMtxPtr creates a new mtx object
-func newRWMtxPtr[T any](v T) *rwMtx[T]                      { return &rwMtx[T]{newBase(&SyncRWMutex{}, v)} }   // newRWMtxPtr creates a new rwMtx object
+func newBase[M syncLocker, T any](m M, v T) *base[M, T]     { return &base[M, T]{m, v} }                       // newBase creates a new base object
+func newMtxPtr[T any](v T) *mtx[T]                          { return &mtx[T]{newBase(&syncMutex{}, v)} }       // newMtxPtr creates a new mtx object
+func newRWMtxPtr[T any](v T) *rwMtx[T]                      { return &rwMtx[T]{newBase(&syncRWMutex{}, v)} }   // newRWMtxPtr creates a new rwMtx object
 func NewMtx[T any](v T) Mtx[T]                              { return Mtx[T]{newMtxPtr(v)} }                    // NewMtx returns a new Mtx with a sync.Mutex as backend
 func NewRWMtx[T any](v T) Mtx[T]                            { return Mtx[T]{newRWMtxPtr(v)} }                  // NewRWMtx returns a new Mtx with a sync.RWMutex as backend
 func NewMtxPtr[T any](v T) *Mtx[T]                          { return toPtr(NewMtx(v)) }                        // NewMtxPtr same as NewMtx, but as a pointer
