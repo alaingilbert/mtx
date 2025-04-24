@@ -23,6 +23,7 @@
 package mtx
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"sync"
@@ -1770,5 +1771,298 @@ func TestNewMutex(t *testing.T) {
 				t.Errorf("expected {world 100}, got %v", v)
 			}
 		})
+	})
+}
+
+func TestBase_WithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		b := &base[sync.Locker, int]{
+			m: &sync.Mutex{},
+			v: 42,
+		}
+
+		err := b.WithE(func(v *int) error {
+			*v = 100
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+
+		if b.v != 100 {
+			t.Errorf("expected value to be 100, got %d", b.v)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		b := &base[sync.Locker, int]{
+			m: &sync.Mutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := b.WithE(func(v *int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestBase_RWithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		b := &base[sync.Locker, int]{
+			m: &sync.Mutex{},
+			v: 42,
+		}
+
+		err := b.RWithE(func(v int) error {
+			if v != 42 {
+				t.Errorf("expected value to be 42, got %d", v)
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		b := &base[sync.Locker, int]{
+			m: &sync.Mutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := b.RWithE(func(v int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestBaseMutex_WithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		bm := &baseMutex[int]{
+			m: sync.Mutex{},
+			v: 42,
+		}
+
+		err := bm.WithE(func(v *int) error {
+			*v = 100
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+
+		if bm.v != 100 {
+			t.Errorf("expected value to be 100, got %d", bm.v)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		bm := &baseMutex[int]{
+			m: sync.Mutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := bm.WithE(func(v *int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestBaseMutex_RWithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		bm := &baseMutex[int]{
+			m: sync.Mutex{},
+			v: 42,
+		}
+
+		err := bm.RWithE(func(v int) error {
+			if v != 42 {
+				t.Errorf("expected value to be 42, got %d", v)
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		bm := &baseMutex[int]{
+			m: sync.Mutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := bm.RWithE(func(v int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestBaseRWMutex_WithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		brw := &baseRWMutex[int]{
+			m: sync.RWMutex{},
+			v: 42,
+		}
+
+		err := brw.WithE(func(v *int) error {
+			*v = 100
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+
+		if brw.v != 100 {
+			t.Errorf("expected value to be 100, got %d", brw.v)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		brw := &baseRWMutex[int]{
+			m: sync.RWMutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := brw.WithE(func(v *int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestBaseRWMutex_RWithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		brw := &baseRWMutex[int]{
+			m: sync.RWMutex{},
+			v: 42,
+		}
+
+		err := brw.RWithE(func(v int) error {
+			if v != 42 {
+				t.Errorf("expected value to be 42, got %d", v)
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		brw := &baseRWMutex[int]{
+			m: sync.RWMutex{},
+			v: 42,
+		}
+
+		expectedErr := errors.New("test error")
+		err := brw.RWithE(func(v int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+}
+
+func TestRWMtx_RWithE(t *testing.T) {
+	t.Run("successful callback", func(t *testing.T) {
+		rw := &rwMtx[int]{
+			base: &base[*SyncRWMutex, int]{
+				m: &SyncRWMutex{},
+				v: 42,
+			},
+		}
+
+		err := rw.RWithE(func(v int) error {
+			if v != 42 {
+				t.Errorf("expected value to be 42, got %d", v)
+			}
+			return nil
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("callback returns error", func(t *testing.T) {
+		rw := &rwMtx[int]{
+			base: &base[*SyncRWMutex, int]{
+				m: &SyncRWMutex{},
+				v: 42,
+			},
+		}
+
+		expectedErr := errors.New("test error")
+		err := rw.RWithE(func(v int) error {
+			return expectedErr
+		})
+
+		if err != expectedErr {
+			t.Errorf("expected error %v, got %v", expectedErr, err)
+		}
+	})
+
+	t.Run("concurrent read operations", func(t *testing.T) {
+		rw := &rwMtx[int]{
+			base: &base[*SyncRWMutex, int]{
+				m: &SyncRWMutex{},
+				v: 42,
+			},
+		}
+
+		// Simulate concurrent reads
+		var wg sync.WaitGroup
+		const iterations = 1000
+		wg.Add(iterations)
+
+		for i := 0; i < iterations; i++ {
+			go func() {
+				defer wg.Done()
+				err := rw.RWithE(func(v int) error {
+					if v != 42 {
+						t.Errorf("expected value to be 42, got %d", v)
+					}
+					return nil
+				})
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}()
+		}
+
+		wg.Wait()
 	})
 }
