@@ -29,6 +29,32 @@ import (
 	"testing"
 )
 
+func TestRWMtx_MultiRead(t *testing.T) {
+	var val string
+	m := NewRWMtx("val")
+	m.RWith(func(_ string) {
+		m.RWith(func(s string) {
+			val = s
+		})
+	})
+	if got := val; got != "val" {
+		t.Errorf("expected %q, got %q", "val", got)
+	}
+}
+
+func TestRWMutex_MultiRead(t *testing.T) {
+	var val string
+	m := NewRWMutex("val")
+	m.RWith(func(_ string) {
+		m.RWith(func(s string) {
+			val = s
+		})
+	})
+	if got := val; got != "val" {
+		t.Errorf("expected %q, got %q", "val", got)
+	}
+}
+
 func TestMtx_LockUnlock(t *testing.T) {
 	m := NewMtx("old")
 	m.Lock()

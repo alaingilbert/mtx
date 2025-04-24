@@ -486,11 +486,13 @@ func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
 	defer m.Unlock()
 	return clb(m.GetPointer())
 }
+func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
+	m.RLock()
+	defer m.RUnlock()
+	return clb(*m.GetPointer())
+}
 func with[M Locker[T], T any](m M, clb func(v *T)) {
 	_ = m.WithE(func(tx *T) error { clb(tx); return nil })
-}
-func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
-	return m.WithE(func(v *T) error { return clb(*v) })
 }
 func rWith[M Locker[T], T any](m M, clb func(v T)) {
 	_ = m.RWithE(func(tx T) error { clb(tx); return nil })
