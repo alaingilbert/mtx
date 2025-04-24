@@ -536,10 +536,7 @@ func pop[M Locker[T], T []E, E any](m M) (out E) {
 	return
 }
 func sliceClone[M Locker[T], T []E, E any](m M) (out []E) {
-	rWith(m, func(v T) {
-		out = make([]E, len(v))
-		copy(out, v)
-	})
+	rWith(m, func(v T) { out = make([]E, len(v)); copy(out, v) })
 	return
 }
 func sliceLen[M Locker[T], T []E, E any](m M) (out int) {
@@ -555,19 +552,11 @@ func get[M Locker[T], T []E, E any](m M, i int) (out E) {
 	return
 }
 func sliceRemove[M Locker[T], T []E, E any](m M, i int) (out E) {
-	with(m, func(v *T) {
-		out = (*v)[i]
-		*v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])]
-	})
+	with(m, func(v *T) { out = (*v)[i]; *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 	return
 }
 func insert[M Locker[T], T []E, E any](m M, i int, el E) {
-	with(m, func(v *T) {
-		var zero E
-		*v = append(*v, zero)
-		copy((*v)[i+1:], (*v)[i:])
-		(*v)[i] = el
-	})
+	with(m, func(v *T) { var zero E; *v = append(*v, zero); copy((*v)[i+1:], (*v)[i:]); (*v)[i] = el })
 }
 func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
 	rWith(m, func(v T) {
