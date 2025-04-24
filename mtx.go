@@ -481,9 +481,6 @@ func (m *RWMutexNumber[T]) Sub(diff T)                     { sub(m, diff) }
 //-----------------------------------------------------------------------------
 // Generic functions
 
-func getPointer[M Locker[T], T any](m M) *T {
-	return m.GetPointer()
-}
 func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
 	m.Lock()
 	defer m.Unlock()
@@ -494,29 +491,17 @@ func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
 	defer m.RUnlock()
 	return clb(*getPointer(m))
 }
+func getPointer[M Locker[T], T any](m M) *T {
+	return m.GetPointer()
+}
 func with[M Locker[T], T any](m M, clb func(v *T)) {
 	_ = withE(m, func(tx *T) error { clb(tx); return nil })
 }
 func rWith[M Locker[T], T any](m M, clb func(v T)) {
 	_ = rWithE(m, func(tx T) error { clb(tx); return nil })
 }
-func load[M Locker[T], T any](m M) (out T) {
-	rWith(m, func(v T) { out = v })
-	return out
-}
 func store[M Locker[T], T any](m M, newV T) {
 	with(m, func(v *T) { *v = newV })
-}
-func swap[M Locker[T], T any](m M, newVal T) (old T) {
-	with(m, func(v *T) { old, *v = *v, newVal })
-	return
-}
-func sliceEach[M Locker[T], T []E, E any](m M, clb func(E)) {
-	rWith(m, func(v T) {
-		for _, e := range v {
-			clb(e)
-		}
-	})
 }
 func sliceClear[M Locker[T], T []E, E any](m M) {
 	with(m, func(v *T) { *v = make([]E, 0) })
@@ -526,6 +511,23 @@ func sliceAppend[M Locker[T], T []E, E any](m M, els ...E) {
 }
 func unshift[M Locker[T], T []E, E any](m M, el E) {
 	with(m, func(v *T) { *v = append([]E{el}, *v...) })
+}
+func insert[M Locker[T], T []E, E any](m M, i int, el E) {
+	with(m, func(v *T) { var zero E; *v = append(*v, zero); copy((*v)[i+1:], (*v)[i:]); (*v)[i] = el })
+}
+func mapClear[M Locker[T], T map[K]V, K comparable, V any](m M) {
+	with(m, func(m *T) { clear(*m) })
+}
+func mapInsert[M Locker[T], T map[K]V, K comparable, V any](m M, k K, v V) {
+	with(m, func(m *T) { (*m)[k] = v })
+}
+func load[M Locker[T], T any](m M) (out T) {
+	rWith(m, func(v T) { out = v })
+	return out
+}
+func swap[M Locker[T], T any](m M, newVal T) (old T) {
+	with(m, func(v *T) { old, *v = *v, newVal })
+	return
 }
 func shift[M Locker[T], T []E, E any](m M) (out E) {
 	with(m, func(v *T) { out, *v = (*v)[0], (*v)[1:] })
@@ -555,47 +557,12 @@ func sliceRemove[M Locker[T], T []E, E any](m M, i int) (out E) {
 	with(m, func(v *T) { out = (*v)[i]; *v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])] })
 	return
 }
-func insert[M Locker[T], T []E, E any](m M, i int, el E) {
-	with(m, func(v *T) { var zero E; *v = append(*v, zero); copy((*v)[i+1:], (*v)[i:]); (*v)[i] = el })
-}
-func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
-	rWith(m, func(v T) {
-		out = make([]E, 0)
-		for _, x := range v {
-			if keep(x) {
-				out = append(out, x)
-			}
-		}
-	})
-	return
-}
-func mapClear[M Locker[T], T map[K]V, K comparable, V any](m M) {
-	with(m, func(m *T) { clear(*m) })
-}
-func mapInsert[M Locker[T], T map[K]V, K comparable, V any](m M, k K, v V) {
-	with(m, func(m *T) { (*m)[k] = v })
-}
 func mapGet[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
 	rWith(m, func(mm T) { out, ok = mm[k] })
 	return
 }
-func getKeyValue[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (key K, value V, ok bool) {
-	rWith(m, func(mm T) { value, ok = mm[k] })
-	if ok {
-		return k, value, true
-	}
-	return
-}
 func containsKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found bool) {
 	rWith(m, func(mm T) { _, found = mm[k] })
-	return
-}
-func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
-	with(m, func(m *T) {
-		if out, ok = (*m)[k]; ok {
-			delete(*m, k)
-		}
-	})
 	return
 }
 func mapDelete[M Locker[T], T map[K]V, K comparable, V any](m M, k K) {
@@ -610,12 +577,45 @@ func mapIsEmpty[M Locker[T], T map[K]V, K comparable, V any](m M) (out bool) {
 	rWith(m, func(mm T) { out = len(mm) == 0 })
 	return
 }
+func getKeyValue[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (key K, value V, ok bool) {
+	rWith(m, func(mm T) { value, ok = mm[k] })
+	if ok {
+		return k, value, true
+	}
+	return
+}
+func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
+	with(m, func(m *T) {
+		if out, ok = (*m)[k]; ok {
+			delete(*m, k)
+		}
+	})
+	return
+}
 func mapEach[M Locker[T], T map[K]V, K comparable, V any](m M, clb func(K, V)) {
 	rWith(m, func(mm T) {
 		for k, v := range mm {
 			clb(k, v)
 		}
 	})
+}
+func sliceEach[M Locker[T], T []E, E any](m M, clb func(E)) {
+	rWith(m, func(v T) {
+		for _, e := range v {
+			clb(e)
+		}
+	})
+}
+func filter[M Locker[T], T []E, E any](m M, keep func(el E) bool) (out []E) {
+	rWith(m, func(v T) {
+		out = make([]E, 0)
+		for _, x := range v {
+			if keep(x) {
+				out = append(out, x)
+			}
+		}
+	})
+	return
 }
 func keys[M Locker[T], T map[K]V, K comparable, V any](m M) (out []K) {
 	out = make([]K, 0)
