@@ -1495,7 +1495,7 @@ func TestNumberRWMutex_ConcurrentOperations(t *testing.T) {
 }
 
 func TestNewMapMutex(t *testing.T) {
-	t.Run("creates new MapMutex with given map", func(t *testing.T) {
+	t.Run("creates new MutexMap with given map", func(t *testing.T) {
 		input := map[string]int{"a": 1, "b": 2}
 		m := NewMutexMap(input)
 
@@ -1512,7 +1512,7 @@ func TestNewMapMutex(t *testing.T) {
 }
 
 func TestNewMapRWMutex(t *testing.T) {
-	t.Run("creates new MapRWMutex with given map", func(t *testing.T) {
+	t.Run("creates new RWMutexMap with given map", func(t *testing.T) {
 		input := map[int]string{1: "one", 2: "two"}
 		m := NewRWMutexMap(input)
 
@@ -1554,7 +1554,7 @@ func TestNewRWMutex(t *testing.T) {
 }
 
 func TestNewSliceMutex(t *testing.T) {
-	t.Run("creates new SliceMutex with given slice", func(t *testing.T) {
+	t.Run("creates new MutexSlice with given slice", func(t *testing.T) {
 		initialSlice := []int{1, 2, 3}
 		sliceMutex := NewMutexSlice(initialSlice)
 
@@ -1587,7 +1587,7 @@ func TestNewSliceMutex(t *testing.T) {
 }
 
 func TestNewSliceRWMutex(t *testing.T) {
-	t.Run("creates new SliceRWMutex with given slice", func(t *testing.T) {
+	t.Run("creates new RWMutexSlice with given slice", func(t *testing.T) {
 		initialSlice := []string{"a", "b", "c"}
 		sliceRWMutex := NewRWMutexSlice(initialSlice)
 
@@ -1620,7 +1620,7 @@ func TestNewSliceRWMutex(t *testing.T) {
 }
 
 func TestNewNumberMutex(t *testing.T) {
-	t.Run("creates new NumberMutex with given number", func(t *testing.T) {
+	t.Run("creates new MutexNumber with given number", func(t *testing.T) {
 		initialNumber := 42
 		numberMutex := NewMutexNumber(initialNumber)
 
@@ -1645,7 +1645,7 @@ func TestNewNumberMutex(t *testing.T) {
 }
 
 func TestNewNumberRWMutex(t *testing.T) {
-	t.Run("creates new NumberRWMutex with given number", func(t *testing.T) {
+	t.Run("creates new RWMutexNumber with given number", func(t *testing.T) {
 		initialNumber := 3.14
 		numberRWMutex := NewRWMutexNumber(initialNumber)
 
