@@ -37,7 +37,7 @@ type Locker[T any] interface { // Locker is the interface that each mtx types im
 	With(func(*T))
 	WithE(func(*T) error) error
 }
-type IMap[K comparable, V any] interface { // IMap is the interface that Map implements
+type LockerMap[K comparable, V any] interface { // LockerMap is the interface that Map implements
 	Locker[map[K]V]
 	Clear()
 	Clone() map[K]V
@@ -53,7 +53,7 @@ type IMap[K comparable, V any] interface { // IMap is the interface that Map imp
 	Remove(K) (V, bool)
 	Values() []V
 }
-type ISlice[T any] interface { // ISlice is the interface that Slice implements
+type LockerSlice[T any] interface { // LockerSlice is the interface that Slice implements
 	Locker[[]T]
 	Append(...T)
 	Clear()
@@ -111,12 +111,12 @@ var _ Locker[any] = (*RWMutex[any])(nil)
 var _ Locker[int] = (*Number[int])(nil)
 var _ Locker[int] = (*MutexNumber[int])(nil)
 var _ Locker[int] = (*RWMutexNumber[int])(nil)
-var _ IMap[int, int] = (*Map[int, int])(nil)
-var _ IMap[int, int] = (*MutexMap[int, int])(nil)
-var _ IMap[int, int] = (*RWMutexMap[int, int])(nil)
-var _ ISlice[any] = (*Slice[any])(nil)
-var _ ISlice[any] = (*MutexSlice[any])(nil)
-var _ ISlice[any] = (*RWMutexSlice[any])(nil)
+var _ LockerMap[int, int] = (*Map[int, int])(nil)
+var _ LockerMap[int, int] = (*MutexMap[int, int])(nil)
+var _ LockerMap[int, int] = (*RWMutexMap[int, int])(nil)
+var _ LockerSlice[any] = (*Slice[any])(nil)
+var _ LockerSlice[any] = (*MutexSlice[any])(nil)
+var _ LockerSlice[any] = (*RWMutexSlice[any])(nil)
 var _ Locker[any] = (*baseMutex[any])(nil)
 var _ Locker[any] = (*baseRWMutex[any])(nil)
 var _ Locker[any] = (*base[sync.Locker, any])(nil)
