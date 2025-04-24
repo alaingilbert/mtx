@@ -133,24 +133,24 @@ func newMtxPtr[T any](v T) *mtx[T]                          { return &mtx[T]{new
 func newRWMtxPtr[T any](v T) *rwMtx[T]                      { return &rwMtx[T]{newBase(&syncRWMutex{}, v)} }   // newRWMtxPtr creates a new rwMtx object
 func NewMtx[T any](v T) Mtx[T]                              { return Mtx[T]{newMtxPtr(v)} }                    // NewMtx returns a new Mtx with a sync.Mutex as backend
 func NewRWMtx[T any](v T) Mtx[T]                            { return Mtx[T]{newRWMtxPtr(v)} }                  // NewRWMtx returns a new Mtx with a sync.RWMutex as backend
-func NewMtxPtr[T any](v T) *Mtx[T]                          { return toPtr(NewMtx(v)) }                        // NewMtxPtr same as NewMtx, but as a pointer
-func NewRWMtxPtr[T any](v T) *Mtx[T]                        { return toPtr(NewRWMtx(v)) }                      // NewRWMtxPtr same as Mtx, but as a pointer
+func NewMtxPtr[T any](v T) *Mtx[T]                          { return ptr(NewMtx(v)) }                          // NewMtxPtr same as NewMtx, but as a pointer
+func NewRWMtxPtr[T any](v T) *Mtx[T]                        { return ptr(NewRWMtx(v)) }                        // NewRWMtxPtr same as Mtx, but as a pointer
 func NewMutex[T any](v T) Mutex[T]                          { return Mutex[T]{baseMutex[T]{v: v}} }            // NewMutex creates new Mutex-protected value
 func NewRWMutex[T any](v T) RWMutex[T]                      { return RWMutex[T]{baseRWMutex[T]{v: v}} }        // NewRWMutex creates new RWMutex-protected value
 func NewMap[K comparable, V any](v map[K]V) Map[K, V]       { return Map[K, V]{newMtxPtr(defaultMap(v))} }     // NewMap returns a new Map with a sync.Mutex as backend
 func NewRWMap[K comparable, V any](v map[K]V) Map[K, V]     { return Map[K, V]{newRWMtxPtr(defaultMap(v))} }   // NewRWMap returns a new Map with a sync.RWMutex as backend
-func NewMapPtr[K comparable, V any](v map[K]V) *Map[K, V]   { return toPtr(NewMap(v)) }                        // NewMapPtr same as NewMap, but as a pointer
-func NewRWMapPtr[K comparable, V any](v map[K]V) *Map[K, V] { return toPtr(NewRWMap(v)) }                      // NewRWMapPtr same as NewRWMap, but as a pointer
+func NewMapPtr[K comparable, V any](v map[K]V) *Map[K, V]   { return ptr(NewMap(v)) }                          // NewMapPtr same as NewMap, but as a pointer
+func NewRWMapPtr[K comparable, V any](v map[K]V) *Map[K, V] { return ptr(NewRWMap(v)) }                        // NewRWMapPtr same as NewRWMap, but as a pointer
 func NewSlice[T any](v []T) Slice[T]                        { return Slice[T]{newMtxPtr(defaultSlice(v))} }    // NewSlice returns a new Slice with a sync.Mutex as backend
 func NewRWSlice[T any](v []T) Slice[T]                      { return Slice[T]{newRWMtxPtr(defaultSlice(v))} }  // NewRWSlice returns a new Slice with a sync.RWMutex as backend
-func NewSlicePtr[T any](v []T) *Slice[T]                    { return toPtr(NewSlice(v)) }                      // NewSlicePtr same as NewSlice, but as a pointer
-func NewRWSlicePtr[T any](v []T) *Slice[T]                  { return toPtr(NewRWSlice(v)) }                    // NewRWSlicePtr same as NewRWSlice, but as a pointer
+func NewSlicePtr[T any](v []T) *Slice[T]                    { return ptr(NewSlice(v)) }                        // NewSlicePtr same as NewSlice, but as a pointer
+func NewRWSlicePtr[T any](v []T) *Slice[T]                  { return ptr(NewRWSlice(v)) }                      // NewRWSlicePtr same as NewRWSlice, but as a pointer
 func NewMutexSlice[T any](v []T) MutexSlice[T]              { return MutexSlice[T]{baseMutex[[]T]{v: v}} }     // NewMutexSlice creates new Mutex-protected slice
 func NewRWMutexSlice[T any](v []T) RWMutexSlice[T]          { return RWMutexSlice[T]{baseRWMutex[[]T]{v: v}} } // NewRWMutexSlice creates new RWMutex-protected slice
 func NewNumber[T INumber](v T) Number[T]                    { return Number[T]{newMtxPtr(v)} }                 // NewNumber returns a new Number with a sync.Mutex as backend
 func NewRWNumber[T INumber](v T) Number[T]                  { return Number[T]{newRWMtxPtr(v)} }               // NewRWNumber returns a new Number with a sync.RWMutex as backend
-func NewNumberPtr[T INumber](v T) *Number[T]                { return toPtr(NewNumber(v)) }                     // NewNumberPtr same as NewNumber, but as a pointer
-func NewRWNumberPtr[T INumber](v T) *Number[T]              { return toPtr(NewRWNumber(v)) }                   // NewRWNumberPtr same as NewRWNumber, but as a pointer
+func NewNumberPtr[T INumber](v T) *Number[T]                { return ptr(NewNumber(v)) }                       // NewNumberPtr same as NewNumber, but as a pointer
+func NewRWNumberPtr[T INumber](v T) *Number[T]              { return ptr(NewRWNumber(v)) }                     // NewRWNumberPtr same as NewRWNumber, but as a pointer
 func NewMutexNumber[T INumber](v T) MutexNumber[T]          { return MutexNumber[T]{baseMutex[T]{v: v}} }      // NewMutexNumber creates new Mutex-protected number
 func NewRWMutexNumber[T INumber](v T) RWMutexNumber[T]      { return RWMutexNumber[T]{baseRWMutex[T]{v: v}} }  // NewRWMutexNumber creates new RWMutex-protected number
 func (m *base[M, T]) Lock()                                 { m.m.Lock() }                                     // Lock exposes the underlying sync.Mutex Lock function
@@ -442,7 +442,7 @@ func mapClone[M Locker[T], T map[K]V, K comparable, V any](m M) (out map[K]V) {
 }
 func add[M Locker[T], T INumber](m M, diff T) { with(m, func(v *T) { *v += diff }) }
 func sub[M Locker[T], T INumber](m M, diff T) { with(m, func(v *T) { *v -= diff }) }
-func toPtr[T any](v T) *T                     { return &v }
+func ptr[T any](v T) *T                       { return &v }
 func defaultMap[K comparable, V any](v map[K]V) map[K]V { // returns a default empty map if v is nil
 	if v == nil {
 		v = make(map[K]V)
