@@ -313,7 +313,7 @@ func (m *Map[K, V]) Clone() map[K]V { return mapClone(m) }
 // Methods for Slice
 
 // Each iterates each values of the slice
-func (s *Slice[T]) Each(clb func(T)) { each(s, clb) }
+func (s *Slice[T]) Each(clb func(T)) { sliceEach(s, clb) }
 
 // Clear clears the slice, removing all values
 func (s *Slice[T]) Clear() { sliceClear(s) }
@@ -331,13 +331,13 @@ func (s *Slice[T]) Shift() T { return shift(s) }
 func (s *Slice[T]) Pop() T { return pop(s) }
 
 // Clone returns a clone of the slice
-func (s *Slice[T]) Clone() []T { return clone(s) }
+func (s *Slice[T]) Clone() []T { return sliceClone(s) }
 
 // Len returns the length of the slice
 func (s *Slice[T]) Len() int { return sliceLen(s) }
 
 // IsEmpty returns true if the map contains no elements.
-func (s *Slice[T]) IsEmpty() bool { return isEmpty(s) }
+func (s *Slice[T]) IsEmpty() bool { return sliceIsEmpty(s) }
 
 // Get gets the element at index i
 func (s *Slice[T]) Get(i int) T { return get(s, i) }
@@ -345,7 +345,7 @@ func (s *Slice[T]) Get(i int) T { return get(s, i) }
 // Remove removes the element at position i within the slice,
 // shifting all elements after it to the left
 // Panics if index is out of bounds
-func (s *Slice[T]) Remove(i int) T { return remove(s, i) }
+func (s *Slice[T]) Remove(i int) T { return sliceRemove(s, i) }
 
 // Insert insert a new element at index i
 func (s *Slice[T]) Insert(i int, el T) { insert(s, i, el) }
@@ -421,30 +421,30 @@ func (m *baseRWMutex[T]) RWith(clb func(v T))              { rWith(m, clb) }
 func (m *baseRWMutex[T]) Load() (out T)                    { return load(m) }
 func (m *baseRWMutex[T]) Store(newV T)                     { store(m, newV) }
 func (m *baseRWMutex[T]) Swap(newVal T) (old T)            { return swap(m, newVal) }
-func (s *MutexSlice[T]) Each(clb func(T))                  { each(s, clb) }
+func (s *MutexSlice[T]) Each(clb func(T))                  { sliceEach(s, clb) }
 func (s *MutexSlice[T]) Clear()                            { sliceClear(s) }
 func (s *MutexSlice[T]) Append(els ...T)                   { sliceAppend(s, els...) }
 func (s *MutexSlice[T]) Unshift(el T)                      { unshift(s, el) }
 func (s *MutexSlice[T]) Shift() T                          { return shift(s) }
 func (s *MutexSlice[T]) Pop() T                            { return pop(s) }
-func (s *MutexSlice[T]) Clone() []T                        { return clone(s) }
+func (s *MutexSlice[T]) Clone() []T                        { return sliceClone(s) }
 func (s *MutexSlice[T]) Len() int                          { return sliceLen(s) }
-func (s *MutexSlice[T]) IsEmpty() bool                     { return isEmpty(s) }
+func (s *MutexSlice[T]) IsEmpty() bool                     { return sliceIsEmpty(s) }
 func (s *MutexSlice[T]) Get(i int) T                       { return get(s, i) }
-func (s *MutexSlice[T]) Remove(i int) T                    { return remove(s, i) }
+func (s *MutexSlice[T]) Remove(i int) T                    { return sliceRemove(s, i) }
 func (s *MutexSlice[T]) Insert(i int, el T)                { insert(s, i, el) }
 func (s *MutexSlice[T]) Filter(keep func(T) bool) []T      { return filter(s, keep) }
-func (s *RWMutexSlice[T]) Each(clb func(T))                { each(s, clb) }
+func (s *RWMutexSlice[T]) Each(clb func(T))                { sliceEach(s, clb) }
 func (s *RWMutexSlice[T]) Clear()                          { sliceClear(s) }
 func (s *RWMutexSlice[T]) Append(els ...T)                 { sliceAppend(s, els...) }
 func (s *RWMutexSlice[T]) Unshift(el T)                    { unshift(s, el) }
 func (s *RWMutexSlice[T]) Shift() T                        { return shift(s) }
 func (s *RWMutexSlice[T]) Pop() T                          { return pop(s) }
-func (s *RWMutexSlice[T]) Clone() []T                      { return clone(s) }
+func (s *RWMutexSlice[T]) Clone() []T                      { return sliceClone(s) }
 func (s *RWMutexSlice[T]) Len() int                        { return sliceLen(s) }
-func (s *RWMutexSlice[T]) IsEmpty() bool                   { return isEmpty(s) }
+func (s *RWMutexSlice[T]) IsEmpty() bool                   { return sliceIsEmpty(s) }
 func (s *RWMutexSlice[T]) Get(i int) T                     { return get(s, i) }
-func (s *RWMutexSlice[T]) Remove(i int) T                  { return remove(s, i) }
+func (s *RWMutexSlice[T]) Remove(i int) T                  { return sliceRemove(s, i) }
 func (s *RWMutexSlice[T]) Insert(i int, el T)              { insert(s, i, el) }
 func (s *RWMutexSlice[T]) Filter(keep func(T) bool) []T    { return filter(s, keep) }
 func (m *MutexMap[K, V]) Clear()                           { mapClear(m) }
@@ -517,7 +517,7 @@ func swap[M Locker[T], T any](m M, newVal T) (old T) {
 	})
 	return
 }
-func each[M Locker[T], T []E, E any](m M, clb func(E)) {
+func sliceEach[M Locker[T], T []E, E any](m M, clb func(E)) {
 	m.RWith(func(v T) {
 		for _, e := range v {
 			clb(e)
@@ -541,7 +541,7 @@ func pop[M Locker[T], T []E, E any](m M) (out E) {
 	m.With(func(v *T) { out, *v = (*v)[len(*v)-1], (*v)[:len(*v)-1] })
 	return
 }
-func clone[M Locker[T], T []E, E any](m M) (out []E) {
+func sliceClone[M Locker[T], T []E, E any](m M) (out []E) {
 	m.RWith(func(v T) {
 		out = make([]E, len(v))
 		copy(out, v)
@@ -552,7 +552,7 @@ func sliceLen[M Locker[T], T []E, E any](m M) (out int) {
 	m.RWith(func(v T) { out = len(v) })
 	return
 }
-func isEmpty[M Locker[T], T []E, E any](m M) (out bool) {
+func sliceIsEmpty[M Locker[T], T []E, E any](m M) (out bool) {
 	m.RWith(func(v T) { out = len(v) == 0 })
 	return
 }
@@ -560,7 +560,7 @@ func get[M Locker[T], T []E, E any](m M, i int) (out E) {
 	m.RWith(func(v T) { out = (v)[i] })
 	return
 }
-func remove[M Locker[T], T []E, E any](m M, i int) (out E) {
+func sliceRemove[M Locker[T], T []E, E any](m M, i int) (out E) {
 	m.With(func(v *T) {
 		out = (*v)[i]
 		*v = (*v)[:i+copy((*v)[i:], (*v)[i+1:])]
