@@ -132,6 +132,16 @@ type base[M sync.Locker, T any] struct {
 	v T
 }
 
+type baseMutex[T any] struct {
+	m sync.Mutex
+	v T
+}
+
+type baseRWMutex[T any] struct {
+	m sync.RWMutex
+	v T
+}
+
 // Compile time checks to ensure types satisfies interfaces
 var _ Locker[any] = (*Mtx[any])(nil)
 var _ Locker[any] = (*Mutex[any])(nil)
@@ -342,16 +352,16 @@ func (s *Slice[T]) IsEmpty() bool { return sliceIsEmpty(s) }
 // Get gets the element at index i
 func (s *Slice[T]) Get(i int) T { return get(s, i) }
 
-// Remove removes the element at position i within the slice,
-// shifting all elements after it to the left
-// Panics if index is out of bounds
-func (s *Slice[T]) Remove(i int) T { return sliceRemove(s, i) }
-
 // Insert insert a new element at index i
 func (s *Slice[T]) Insert(i int, el T) { insert(s, i, el) }
 
 // Filter returns a new slice of the elements that satisfy the "keep" predicate callback
 func (s *Slice[T]) Filter(keep func(T) bool) []T { return filter(s, keep) }
+
+// Remove removes the element at position i within the slice,
+// shifting all elements after it to the left
+// Panics if index is out of bounds
+func (s *Slice[T]) Remove(i int) T { return sliceRemove(s, i) }
 
 //-----------------------------------------------------------------------------
 // Methods for Number
@@ -364,16 +374,6 @@ func (n *Number[T]) Sub(diff T) { sub(n, diff) }
 
 //-----------------------------------------------------------------------------
 // Value mutexes
-
-type baseMutex[T any] struct {
-	m sync.Mutex
-	v T
-}
-
-type baseRWMutex[T any] struct {
-	m sync.RWMutex
-	v T
-}
 
 type Mutex[T any] struct{ baseMutex[T] }
 type RWMutex[T any] struct{ baseRWMutex[T] }
