@@ -229,15 +229,15 @@ func TestMap_GetKeyValue(t *testing.T) {
 
 func TestMap_HasKey(t *testing.T) {
 	m := NewMap[string, int](nil)
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 	m.Insert("a", 1)
-	if !m.ContainsKey("a") {
+	if !m.HasKey("a") {
 		t.Error("expected true, got false")
 	}
 	m.Delete("a")
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 }
@@ -250,7 +250,7 @@ func TestMap_Remove(t *testing.T) {
 	if m.Len() != 3 {
 		t.Errorf("expected 3, got %d", m.Len())
 	}
-	if !m.ContainsKey("b") {
+	if !m.HasKey("b") {
 		t.Error("expected true, got false")
 	}
 	val, ok := m.Remove("b")
@@ -260,7 +260,7 @@ func TestMap_Remove(t *testing.T) {
 	if val != 2 {
 		t.Errorf("expected 2, got %d", val)
 	}
-	if m.ContainsKey("b") {
+	if m.HasKey("b") {
 		t.Error("expected false, got true")
 	}
 	_, ok = m.Remove("b")
@@ -357,15 +357,15 @@ func TestRWMap_Get(t *testing.T) {
 
 func TestRWMap_HasKey(t *testing.T) {
 	m := NewRWMap[string, int](nil)
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 	m.Insert("a", 1)
-	if !m.ContainsKey("a") {
+	if !m.HasKey("a") {
 		t.Error("expected true, got false")
 	}
 	m.Delete("a")
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 }
@@ -378,7 +378,7 @@ func TestRWMap_Remove(t *testing.T) {
 	if m.Len() != 3 {
 		t.Errorf("expected 3, got %d", m.Len())
 	}
-	if !m.ContainsKey("b") {
+	if !m.HasKey("b") {
 		t.Error("expected true, got false")
 	}
 	val, ok := m.Remove("b")
@@ -388,7 +388,7 @@ func TestRWMap_Remove(t *testing.T) {
 	if val != 2 {
 		t.Errorf("expected 2, got %d", val)
 	}
-	if m.ContainsKey("b") {
+	if m.HasKey("b") {
 		t.Error("expected false, got true")
 	}
 	_, ok = m.Remove("b")
@@ -1015,7 +1015,7 @@ func TestMapMutex_Remove(t *testing.T) {
 	if val != 1 {
 		t.Errorf("expected 1, got %d", val)
 	}
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 }
@@ -1102,7 +1102,7 @@ func TestMapMutex_GetKeyValue(t *testing.T) {
 func TestMapMutex_Delete(t *testing.T) {
 	m := NewMMap(map[string]int{"a": 1})
 	m.Delete("a")
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 }
@@ -1215,10 +1215,10 @@ func TestMapRWMutex_GetKeyValue(t *testing.T) {
 
 func TestMapRWMutex_ContainsKey(t *testing.T) {
 	m := NewRWMMap(map[string]int{"a": 1})
-	if !m.ContainsKey("a") {
+	if !m.HasKey("a") {
 		t.Error("expected true, got false")
 	}
-	if m.ContainsKey("b") {
+	if m.HasKey("b") {
 		t.Error("expected false, got true")
 	}
 }
@@ -1232,7 +1232,7 @@ func TestMapRWMutex_Remove(t *testing.T) {
 	if val != 1 {
 		t.Errorf("expected 1, got %d", val)
 	}
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 
@@ -1245,7 +1245,7 @@ func TestMapRWMutex_Remove(t *testing.T) {
 func TestMapRWMutex_Delete(t *testing.T) {
 	m := NewRWMMap(map[string]int{"a": 1})
 	m.Delete("a")
-	if m.ContainsKey("a") {
+	if m.HasKey("a") {
 		t.Error("expected false, got true")
 	}
 }

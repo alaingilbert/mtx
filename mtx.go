@@ -41,7 +41,7 @@ type LockerMap[K comparable, V any] interface { // LockerMap is the interface th
 	Locker[map[K]V]
 	Clear()
 	Clone() map[K]V
-	ContainsKey(K) bool
+	HasKey(K) bool
 	Delete(K)
 	Each(func(K, V))
 	Get(K) (V, bool)
@@ -232,7 +232,7 @@ func (s *RWMutexSlice[T]) Shift() T                             { return shift(s
 func (s *RWMutexSlice[T]) Unshift(el T)                         { unshift(s, el) }                               // Unshift adds to front
 func (m *Map[K, V]) Clear()                                     { mapClear(m) }                                  // Clear clears the map, removing all key-value pairs
 func (m *Map[K, V]) Clone() map[K]V                             { return mapClone(m) }                           // Clone returns a clone of the map
-func (m *Map[K, V]) ContainsKey(k K) bool                       { return containsKey(m, k) }                     // ContainsKey returns true if the map contains a value for the specified key
+func (m *Map[K, V]) HasKey(k K) bool                            { return hasKey(m, k) }                          // HasKey returns true if the map contains a value for the specified key
 func (m *Map[K, V]) Delete(k K)                                 { mapDelete(m, k) }                              // Delete deletes a key from the map
 func (m *Map[K, V]) Each(clb func(K, V))                        { mapEach(m, clb) }                              // Each iterates each key/value of the map
 func (m *Map[K, V]) Get(k K) (out V, ok bool)                   { return mapGet(m, k) }                          // Get returns the value corresponding to the key
@@ -245,7 +245,7 @@ func (m *Map[K, V]) Remove(k K) (V, bool)                       { return mapRemo
 func (m *Map[K, V]) Values() []V                                { return values(m) }                             // Values returns a slice of all values
 func (m *MutexMap[K, V]) Clear()                                { mapClear(m) }                                  // Clear empties map
 func (m *MutexMap[K, V]) Clone() map[K]V                        { return mapClone(m) }                           // Clone creates copy
-func (m *MutexMap[K, V]) ContainsKey(k K) bool                  { return containsKey(m, k) }                     // ContainsKey checks key
+func (m *MutexMap[K, V]) HasKey(k K) bool                       { return hasKey(m, k) }                          // HasKey checks key
 func (m *MutexMap[K, V]) Delete(k K)                            { mapDelete(m, k) }                              // Delete removes key
 func (m *MutexMap[K, V]) Each(clb func(K, V))                   { mapEach(m, clb) }                              // Each iterates map
 func (m *MutexMap[K, V]) Get(k K) (V, bool)                     { return mapGet(m, k) }                          // Get returns value
@@ -258,7 +258,7 @@ func (m *MutexMap[K, V]) Remove(k K) (out V, ok bool)           { return mapRemo
 func (m *MutexMap[K, V]) Values() []V                           { return values(m) }                             // Values returns all values
 func (m *RWMutexMap[K, V]) Clear()                              { mapClear(m) }                                  // Clear empties map
 func (m *RWMutexMap[K, V]) Clone() map[K]V                      { return mapClone(m) }                           // Clone creates copy
-func (m *RWMutexMap[K, V]) ContainsKey(k K) bool                { return containsKey(m, k) }                     // ContainsKey checks key
+func (m *RWMutexMap[K, V]) HasKey(k K) bool                     { return hasKey(m, k) }                          // HasKey checks key
 func (m *RWMutexMap[K, V]) Delete(k K)                          { mapDelete(m, k) }                              // Delete removes key
 func (m *RWMutexMap[K, V]) Each(clb func(K, V))                 { mapEach(m, clb) }                              // Each iterates map
 func (m *RWMutexMap[K, V]) Get(k K) (V, bool)                   { return mapGet(m, k) }                          // Get returns value
@@ -355,7 +355,7 @@ func mapGet[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bo
 	rWith(m, func(mm T) { out, ok = mm[k] })
 	return
 }
-func containsKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found bool) {
+func hasKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found bool) {
 	rWith(m, func(mm T) { _, found = mm[k] })
 	return
 }
