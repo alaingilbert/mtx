@@ -988,7 +988,7 @@ func TestSliceMutex_Filter(t *testing.T) {
 }
 
 func TestMapMutex_Insert(t *testing.T) {
-	m := NewMutexMap(map[string]int{})
+	m := NewMMap(map[string]int{})
 	m.Insert("a", 1)
 	if m.Load()["a"] != 1 {
 		t.Errorf("expected 1, got %d", m.Load()["a"])
@@ -996,7 +996,7 @@ func TestMapMutex_Insert(t *testing.T) {
 }
 
 func TestMapMutex_Get(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1})
+	m := NewMMap(map[string]int{"a": 1})
 	val, ok := m.Get("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1007,7 +1007,7 @@ func TestMapMutex_Get(t *testing.T) {
 }
 
 func TestMapMutex_Remove(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1})
+	m := NewMMap(map[string]int{"a": 1})
 	val, ok := m.Remove("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1021,7 +1021,7 @@ func TestMapMutex_Remove(t *testing.T) {
 }
 
 func TestMapMutex_Keys(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewMMap(map[string]int{"a": 1, "b": 2})
 	keys := m.Keys()
 	if len(keys) != 2 {
 		t.Errorf("expected 2, got %d", len(keys))
@@ -1070,7 +1070,7 @@ func TestSliceMutex_Clear(t *testing.T) {
 }
 
 func TestMapMutex_Clear(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewMMap(map[string]int{"a": 1, "b": 2})
 	m.Clear()
 	if len(m.Load()) != 0 {
 		t.Errorf("expected empty map, got %v", m.Load())
@@ -1081,7 +1081,7 @@ func TestMapMutex_Clear(t *testing.T) {
 }
 
 func TestMapMutex_GetKeyValue(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1})
+	m := NewMMap(map[string]int{"a": 1})
 	k, v, ok := m.GetKeyValue("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1100,7 +1100,7 @@ func TestMapMutex_GetKeyValue(t *testing.T) {
 }
 
 func TestMapMutex_Delete(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1})
+	m := NewMMap(map[string]int{"a": 1})
 	m.Delete("a")
 	if m.ContainsKey("a") {
 		t.Error("expected false, got true")
@@ -1108,14 +1108,14 @@ func TestMapMutex_Delete(t *testing.T) {
 }
 
 func TestMapMutex_Len(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewMMap(map[string]int{"a": 1, "b": 2})
 	if m.Len() != 2 {
 		t.Errorf("expected 2, got %d", m.Len())
 	}
 }
 
 func TestMapMutex_IsEmpty(t *testing.T) {
-	m := NewMutexMap(map[string]int{})
+	m := NewMMap(map[string]int{})
 	if !m.IsEmpty() {
 		t.Error("expected true, got false")
 	}
@@ -1126,7 +1126,7 @@ func TestMapMutex_IsEmpty(t *testing.T) {
 }
 
 func TestMapMutex_Each(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewMMap(map[string]int{"a": 1, "b": 2})
 	var sum int
 	m.Each(func(k string, v int) {
 		sum += v
@@ -1137,7 +1137,7 @@ func TestMapMutex_Each(t *testing.T) {
 }
 
 func TestMapMutex_Values(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewMMap(map[string]int{"a": 1, "b": 2})
 	values := m.Values()
 	if len(values) != 2 {
 		t.Errorf("expected 2, got %d", len(values))
@@ -1148,7 +1148,7 @@ func TestMapMutex_Values(t *testing.T) {
 }
 
 func TestMapMutex_Clone(t *testing.T) {
-	m := NewMutexMap(map[string]int{"a": 1})
+	m := NewMMap(map[string]int{"a": 1})
 	clone := m.Clone()
 	if clone["a"] != 1 {
 		t.Errorf("expected 1, got %d", clone["a"])
@@ -1160,7 +1160,7 @@ func TestMapMutex_Clone(t *testing.T) {
 }
 
 func TestMapRWMutex_Clear(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	m.Clear()
 	if len(m.Load()) != 0 {
 		t.Errorf("expected empty map, got %v", m.Load())
@@ -1171,7 +1171,7 @@ func TestMapRWMutex_Clear(t *testing.T) {
 }
 
 func TestMapRWMutex_Insert(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{})
+	m := NewRWMMap(map[string]int{})
 	m.Insert("a", 1)
 	if m.Load()["a"] != 1 {
 		t.Errorf("expected 1, got %d", m.Load()["a"])
@@ -1179,7 +1179,7 @@ func TestMapRWMutex_Insert(t *testing.T) {
 }
 
 func TestMapRWMutex_Get(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	val, ok := m.Get("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1195,7 +1195,7 @@ func TestMapRWMutex_Get(t *testing.T) {
 }
 
 func TestMapRWMutex_GetKeyValue(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	k, v, ok := m.GetKeyValue("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1214,7 +1214,7 @@ func TestMapRWMutex_GetKeyValue(t *testing.T) {
 }
 
 func TestMapRWMutex_ContainsKey(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	if !m.ContainsKey("a") {
 		t.Error("expected true, got false")
 	}
@@ -1224,7 +1224,7 @@ func TestMapRWMutex_ContainsKey(t *testing.T) {
 }
 
 func TestMapRWMutex_Remove(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	val, ok := m.Remove("a")
 	if !ok {
 		t.Error("expected true, got false")
@@ -1243,7 +1243,7 @@ func TestMapRWMutex_Remove(t *testing.T) {
 }
 
 func TestMapRWMutex_Delete(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	m.Delete("a")
 	if m.ContainsKey("a") {
 		t.Error("expected false, got true")
@@ -1251,14 +1251,14 @@ func TestMapRWMutex_Delete(t *testing.T) {
 }
 
 func TestMapRWMutex_Len(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewRWMMap(map[string]int{"a": 1, "b": 2})
 	if m.Len() != 2 {
 		t.Errorf("expected 2, got %d", m.Len())
 	}
 }
 
 func TestMapRWMutex_IsEmpty(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{})
+	m := NewRWMMap(map[string]int{})
 	if !m.IsEmpty() {
 		t.Error("expected true, got false")
 	}
@@ -1269,7 +1269,7 @@ func TestMapRWMutex_IsEmpty(t *testing.T) {
 }
 
 func TestMapRWMutex_Each(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewRWMMap(map[string]int{"a": 1, "b": 2})
 	var sum int
 	m.Each(func(k string, v int) {
 		sum += v
@@ -1280,7 +1280,7 @@ func TestMapRWMutex_Each(t *testing.T) {
 }
 
 func TestMapRWMutex_Keys(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewRWMMap(map[string]int{"a": 1, "b": 2})
 	keys := m.Keys()
 	if len(keys) != 2 {
 		t.Errorf("expected 2, got %d", len(keys))
@@ -1291,7 +1291,7 @@ func TestMapRWMutex_Keys(t *testing.T) {
 }
 
 func TestMapRWMutex_Values(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1, "b": 2})
+	m := NewRWMMap(map[string]int{"a": 1, "b": 2})
 	values := m.Values()
 	if len(values) != 2 {
 		t.Errorf("expected 2, got %d", len(values))
@@ -1302,7 +1302,7 @@ func TestMapRWMutex_Values(t *testing.T) {
 }
 
 func TestMapRWMutex_Clone(t *testing.T) {
-	m := NewRWMutexMap(map[string]int{"a": 1})
+	m := NewRWMMap(map[string]int{"a": 1})
 	clone := m.Clone()
 	if clone["a"] != 1 {
 		t.Errorf("expected 1, got %d", clone["a"])
@@ -1524,7 +1524,7 @@ func TestNumberRWMutex_ConcurrentOperations(t *testing.T) {
 func TestNewMapMutex(t *testing.T) {
 	t.Run("creates new MutexMap with given map", func(t *testing.T) {
 		input := map[string]int{"a": 1, "b": 2}
-		m := NewMutexMap(input)
+		m := NewMMap(input)
 
 		// Verify the internal map matches input
 		m.RWith(func(v map[string]int) {
@@ -1541,7 +1541,7 @@ func TestNewMapMutex(t *testing.T) {
 func TestNewMapRWMutex(t *testing.T) {
 	t.Run("creates new RWMutexMap with given map", func(t *testing.T) {
 		input := map[int]string{1: "one", 2: "two"}
-		m := NewRWMutexMap(input)
+		m := NewRWMMap(input)
 
 		m.RWith(func(v map[int]string) {
 			if len(v) != 2 {
