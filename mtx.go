@@ -134,9 +134,19 @@ type base[M sync.Locker, T any] struct {
 
 // Compile time checks to ensure types satisfies interfaces
 var _ Locker[any] = (*Mtx[any])(nil)
+var _ Locker[any] = (*Mutex[any])(nil)
+var _ Locker[any] = (*RWMutex[any])(nil)
 var _ Locker[int] = (*Number[int])(nil)
+var _ Locker[int] = (*NumberMutex[int])(nil)
+var _ Locker[int] = (*NumberRWMutex[int])(nil)
 var _ IMap[int, int] = (*Map[int, int])(nil)
+var _ IMap[int, int] = (*MapMutex[int, int])(nil)
+var _ IMap[int, int] = (*MapRWMutex[int, int])(nil)
 var _ ISlice[any] = (*Slice[any])(nil)
+var _ ISlice[any] = (*SliceMutex[any])(nil)
+var _ ISlice[any] = (*SliceRWMutex[any])(nil)
+var _ Locker[any] = (*baseMutex[any])(nil)
+var _ Locker[any] = (*baseRWMutex[any])(nil)
 var _ Locker[any] = (*base[sync.Locker, any])(nil)
 
 //-----------------------------------------------------------------------------
