@@ -487,21 +487,13 @@ func withE[M Locker[T], T any](m M, clb func(v *T) error) error {
 	return clb(m.GetPointer())
 }
 func with[M Locker[T], T any](m M, clb func(v *T)) {
-	_ = m.WithE(func(tx *T) error {
-		clb(tx)
-		return nil
-	})
+	_ = m.WithE(func(tx *T) error { clb(tx); return nil })
 }
 func rWithE[M Locker[T], T any](m M, clb func(v T) error) error {
-	return m.WithE(func(v *T) error {
-		return clb(*v)
-	})
+	return m.WithE(func(v *T) error { return clb(*v) })
 }
 func rWith[M Locker[T], T any](m M, clb func(v T)) {
-	_ = m.RWithE(func(tx T) error {
-		clb(tx)
-		return nil
-	})
+	_ = m.RWithE(func(tx T) error { clb(tx); return nil })
 }
 func load[M Locker[T], T any](m M) (out T) {
 	m.RWith(func(v T) { out = v })
@@ -511,10 +503,7 @@ func store[M Locker[T], T any](m M, newV T) {
 	m.With(func(v *T) { *v = newV })
 }
 func swap[M Locker[T], T any](m M, newVal T) (old T) {
-	m.With(func(v *T) {
-		old = *v
-		*v = newVal
-	})
+	m.With(func(v *T) { old, *v = *v, newVal })
 	return
 }
 func sliceEach[M Locker[T], T []E, E any](m M, clb func(E)) {
@@ -609,8 +598,7 @@ func containsKey[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (found b
 }
 func mapRemove[M Locker[T], T map[K]V, K comparable, V any](m M, k K) (out V, ok bool) {
 	m.With(func(m *T) {
-		out, ok = (*m)[k]
-		if ok {
+		if out, ok = (*m)[k]; ok {
 			delete(*m, k)
 		}
 	})
