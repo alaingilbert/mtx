@@ -391,10 +391,10 @@ func NewRWMutexSlice[T any](v []T) SliceRWMutex[T]     { return SliceRWMutex[T]{
 func NewMutexNumber[T INumber](v T) NumberMutex[T]     { return NumberMutex[T]{baseMutex[T]{v: v}} }
 func NewRWMutexNumber[T INumber](v T) NumberRWMutex[T] { return NumberRWMutex[T]{baseRWMutex[T]{v: v}} }
 func NewMutexMap[K comparable, V any](m map[K]V) MapMutex[K, V] {
-	return MapMutex[K, V]{baseMutex[map[K]V]{v: m}}
+	return MapMutex[K, V]{baseMutex[map[K]V]{v: defaultMap(m)}}
 }
 func NewRWMutexMap[K comparable, V any](m map[K]V) MapRWMutex[K, V] {
-	return MapRWMutex[K, V]{baseRWMutex[map[K]V]{v: m}}
+	return MapRWMutex[K, V]{baseRWMutex[map[K]V]{v: defaultMap(m)}}
 }
 
 func (m *baseMutex[T]) Lock()                              { m.m.Lock() }
