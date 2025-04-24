@@ -443,7 +443,6 @@ func mapClone[M Locker[T], T map[K]V, K comparable, V any](m M) (out map[K]V) {
 func add[M Locker[T], T INumber](m M, diff T) { with(m, func(v *T) { *v += diff }) }
 func sub[M Locker[T], T INumber](m M, diff T) { with(m, func(v *T) { *v -= diff }) }
 func toPtr[T any](v T) *T                     { return &v }
-func first[T any](a T, _ ...any) T            { return a }
 func defaultMap[K comparable, V any](v map[K]V) map[K]V { // returns a default empty map if v is nil
 	if v == nil {
 		v = make(map[K]V)

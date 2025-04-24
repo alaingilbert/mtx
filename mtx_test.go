@@ -463,8 +463,8 @@ func TestRWMap_InitialValue(t *testing.T) {
 	if m.Len() != 3 {
 		t.Errorf("expected 3, got %d", m.Len())
 	}
-	if first(m.Get("b")) != 2 {
-		t.Errorf("expected 2, got %d", first(m.Get("b")))
+	if got, _ := m.Get("b"); got != 2 {
+		t.Errorf("expected 2, got %d", got)
 	}
 }
 
@@ -475,15 +475,15 @@ func TestRWMap_Load(t *testing.T) {
 	if theMap["a"] != 4 {
 		t.Errorf("expected 4, got %d", theMap["a"])
 	}
-	if first(m.Get("a")) != 4 {
-		t.Errorf("expected 4, got %d", first(m.Get("a")))
+	if got, _ := m.Get("a"); got != 4 {
+		t.Errorf("expected 4, got %d", got)
 	}
 	theMap["a"] = 5
 	if theMap["a"] != 5 {
 		t.Errorf("expected 5, got %d", theMap["a"])
 	}
-	if first(m.Get("a")) != 5 {
-		t.Errorf("expected 5, got %d", first(m.Get("a")))
+	if got, _ := m.Get("a"); got != 5 {
+		t.Errorf("expected 5, got %d", got)
 	}
 }
 
@@ -494,8 +494,8 @@ func TestRWMap_Clone(t *testing.T) {
 	if clonedMap["a"] != 1 {
 		t.Errorf("expected 1, got %d", clonedMap["a"])
 	}
-	if first(m.Get("a")) != 4 {
-		t.Errorf("expected 4, got %d", first(m.Get("a")))
+	if got, _ := m.Get("a"); got != 4 {
+		t.Errorf("expected 4, got %d", got)
 	}
 }
 
